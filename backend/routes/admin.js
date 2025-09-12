@@ -247,10 +247,104 @@ const getRoundCodes = async (req, res) => {
 
 // Apply routes
 router.get('/teams', adminAuth, getAllTeams);
+// @desc    Set round code (Admin only)
+// @route   POST /api/admin/round-codes
+// @access  Private (Admin)
+const setRoundCode = async (req, res) => {
+    try {
+        const { round, code } = req.body;
+
+        if (!round || !code) {
+            return res.status(400).json({
+                success: false,
+                message: 'Round number and code are required'
+            });
+        }
+
+        if (![2, 3].includes(parseInt(round))) {
+            return res.status(400).json({
+                success: false,
+                message: 'Round must be 2 or 3'
+            });
+        }
+
+        // Deactivate any existing code for this round
+        await RoundCodes.updateMany(
+            { round: parseInt(round) },
+            { isActive: false }
+        );
+
+        // Create new active code
+        const newCode = new RoundCodes({
+            round: parseInt(round),
+            code: code.trim(),
+            isActive: true,
+            usageCount: 0,
+            completionCount: 0
+        });
+
+        await newCode.save();
+
+        res.status(200).json({
+            success: true,
+            message: `Round ${round} code set successfully`,
+            data: {
+                round: newCode.round,
+                code: newCode.code
+            }
+        });
+    } catch (error) {
+        console.error('Set round code error:', error);
+        res.status(500).json({
+            success: false,
+            message: 'Server error while setting round code'
+        });
+    }
+};
+
+// @desc    Reset round code (Admin only)
+// @route   DELETE /api/admin/round-codes/:round
+// @access  Private (Admin)
+const resetRoundCode = async (req, res) => {
+    try {
+        const { round } = req.params;
+
+        if (![2, 3].includes(parseInt(round))) {
+            return res.status(400).json({
+                success: false,
+                message: 'Round must be 2 or 3'
+            });
+        }
+
+        // Deactivate all codes for this round
+        const result = await RoundCodes.updateMany(
+            { round: parseInt(round) },
+            { isActive: false }
+        );
+
+        res.status(200).json({
+            success: true,
+            message: `Round ${round} code reset successfully`,
+            data: {
+                round: parseInt(round),
+                deactivatedCount: result.modifiedCount
+            }
+        });
+    } catch (error) {
+        console.error('Reset round code error:', error);
+        res.status(500).json({
+            success: false,
+            message: 'Server error while resetting round code'
+        });
+    }
+};
+
 router.put('/teams/:id/status', adminAuth, updateTeamStatus);
 router.post('/announce/:round', adminAuth, announceRoundResults);
 router.post('/start/:round', adminAuth, startRound);
 router.get('/stats', adminAuth, getCompetitionStats);
 router.get('/round-codes', adminAuth, getRoundCodes);
+router.post('/round-codes', adminAuth, setRoundCode);
+router.delete('/round-codes/:round', adminAuth, resetRoundCode);
 
 export default router;

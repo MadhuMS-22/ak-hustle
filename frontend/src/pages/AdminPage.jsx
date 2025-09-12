@@ -23,6 +23,8 @@ const AdminPage = () => {
         round2: { usageCount: 0, completionCount: 0 },
         round3: { usageCount: 0, completionCount: 0 }
     });
+    const [newRoundCodes, setNewRoundCodes] = useState({ round2: '', round3: '' });
+    const [settingCode, setSettingCode] = useState({ round2: false, round3: false });
     const [loading, setLoading] = useState(true);
     const [searchTerm, setSearchTerm] = useState('');
     const [statusFilter, setStatusFilter] = useState('all');
@@ -256,6 +258,53 @@ const AdminPage = () => {
         } catch (error) {
             console.error('Error starting round 3:', error);
             alert('Error starting round 3');
+        }
+    };
+
+    const handleSetCode = async (roundNumber) => {
+        try {
+            setSettingCode({ ...settingCode, [`round${roundNumber}`]: true });
+            const code = newRoundCodes[`round${roundNumber}`];
+            if (!code.trim()) {
+                alert(`Please enter a code for Round ${roundNumber}`);
+                return;
+            }
+            
+            const response = await apiService.post(`/admin/round-codes`, {
+                round: roundNumber,
+                code: code.trim()
+            });
+            
+            if (response.success) {
+                setRoundCodes({ ...roundCodes, [`round${roundNumber}`]: code.trim() });
+                setNewRoundCodes({ ...newRoundCodes, [`round${roundNumber}`]: '' });
+                alert(`Round ${roundNumber} code set successfully!`);
+            } else {
+                alert(response.message || `Error setting Round ${roundNumber} code`);
+            }
+        } catch (error) {
+            console.error(`Error setting Round ${roundNumber} code:`, error);
+            alert(`Error setting Round ${roundNumber} code`);
+        } finally {
+            setSettingCode({ ...settingCode, [`round${roundNumber}`]: false });
+        }
+    };
+
+    const handleResetCode = async (roundNumber) => {
+        try {
+            if (window.confirm(`Are you sure you want to reset Round ${roundNumber} code?`)) {
+                const response = await apiService.delete(`/admin/round-codes/${roundNumber}`);
+                if (response.success) {
+                    setRoundCodes({ ...roundCodes, [`round${roundNumber}`]: '' });
+                    setNewRoundCodes({ ...newRoundCodes, [`round${roundNumber}`]: '' });
+                    alert(`Round ${roundNumber} code reset successfully!`);
+                } else {
+                    alert(response.message || `Error resetting Round ${roundNumber} code`);
+                }
+            }
+        } catch (error) {
+            console.error(`Error resetting Round ${roundNumber} code:`, error);
+            alert(`Error resetting Round ${roundNumber} code`);
         }
     };
 
@@ -588,20 +637,47 @@ const AdminPage = () => {
                     </div>
 
                     <div className="space-y-4">
+                        {/* Current Code Display */}
+                        {roundCodes.round2 && (
+                            <div className="bg-green-600/20 border border-green-400/30 rounded-lg p-4">
+                                <label className="block text-sm font-medium text-green-300 mb-2">Current Code</label>
+                                <div className="flex items-center justify-between">
+                                    <code className="text-green-200 font-mono text-lg">{roundCodes.round2}</code>
+                                    <button
+                                        onClick={() => handleResetCode(2)}
+                                        className="bg-red-600 hover:bg-red-700 text-white px-3 py-1 rounded text-sm transition-colors"
+                                    >
+                                        Reset
+                                    </button>
+                                </div>
+                            </div>
+                        )}
+
+                        {/* Set New Code */}
                         <div>
-                            <label className="block text-sm font-medium text-white mb-2">Access Code</label>
-                            <input
-                                type="text"
-                                placeholder="Enter round 2 code"
-                                value={roundCodes.round2 || ''}
-                                onChange={(e) => setRoundCodes({ ...roundCodes, round2: e.target.value })}
-                                className="w-full px-4 py-3 bg-white/20 border border-white/30 rounded-lg text-white placeholder-white/70 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                            />
+                            <label className="block text-sm font-medium text-white mb-2">Set Code</label>
+                            <div className="flex gap-2">
+                                <input
+                                    type="text"
+                                    placeholder="Enter new round 2 code"
+                                    value={newRoundCodes.round2 || ''}
+                                    onChange={(e) => setNewRoundCodes({ ...newRoundCodes, round2: e.target.value })}
+                                    className="flex-1 px-4 py-3 bg-white/20 border border-white/30 rounded-lg text-white placeholder-white/70 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                />
+                                <button
+                                    onClick={() => handleSetCode(2)}
+                                    disabled={settingCode.round2 || !newRoundCodes.round2.trim()}
+                                    className="bg-blue-600 hover:bg-blue-700 disabled:bg-gray-600 disabled:cursor-not-allowed text-white px-4 py-3 rounded-lg transition-colors"
+                                >
+                                    {settingCode.round2 ? 'Setting...' : 'Set'}
+                                </button>
+                            </div>
                         </div>
 
                         <button
                             onClick={handleStartRound2}
-                            className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-6 rounded-lg transition-all duration-300 hover:scale-105 transform shadow-lg"
+                            disabled={!roundCodes.round2}
+                            className="w-full bg-blue-600 hover:bg-blue-700 disabled:bg-gray-600 disabled:cursor-not-allowed text-white font-semibold py-3 px-6 rounded-lg transition-all duration-300 hover:scale-105 transform shadow-lg"
                         >
                             Start Round 2
                         </button>
@@ -616,20 +692,47 @@ const AdminPage = () => {
                     </div>
 
                     <div className="space-y-4">
+                        {/* Current Code Display */}
+                        {roundCodes.round3 && (
+                            <div className="bg-green-600/20 border border-green-400/30 rounded-lg p-4">
+                                <label className="block text-sm font-medium text-green-300 mb-2">Current Code</label>
+                                <div className="flex items-center justify-between">
+                                    <code className="text-green-200 font-mono text-lg">{roundCodes.round3}</code>
+                                    <button
+                                        onClick={() => handleResetCode(3)}
+                                        className="bg-red-600 hover:bg-red-700 text-white px-3 py-1 rounded text-sm transition-colors"
+                                    >
+                                        Reset
+                                    </button>
+                                </div>
+                            </div>
+                        )}
+
+                        {/* Set New Code */}
                         <div>
-                            <label className="block text-sm font-medium text-white mb-2">Access Code</label>
-                            <input
-                                type="text"
-                                placeholder="Enter round 3 code"
-                                value={roundCodes.round3 || ''}
-                                onChange={(e) => setRoundCodes({ ...roundCodes, round3: e.target.value })}
-                                className="w-full px-4 py-3 bg-white/20 border border-white/30 rounded-lg text-white placeholder-white/70 focus:outline-none focus:ring-2 focus:ring-purple-500"
-                            />
+                            <label className="block text-sm font-medium text-white mb-2">Set Code</label>
+                            <div className="flex gap-2">
+                                <input
+                                    type="text"
+                                    placeholder="Enter new round 3 code"
+                                    value={newRoundCodes.round3 || ''}
+                                    onChange={(e) => setNewRoundCodes({ ...newRoundCodes, round3: e.target.value })}
+                                    className="flex-1 px-4 py-3 bg-white/20 border border-white/30 rounded-lg text-white placeholder-white/70 focus:outline-none focus:ring-2 focus:ring-purple-500"
+                                />
+                                <button
+                                    onClick={() => handleSetCode(3)}
+                                    disabled={settingCode.round3 || !newRoundCodes.round3.trim()}
+                                    className="bg-purple-600 hover:bg-purple-700 disabled:bg-gray-600 disabled:cursor-not-allowed text-white px-4 py-3 rounded-lg transition-colors"
+                                >
+                                    {settingCode.round3 ? 'Setting...' : 'Set'}
+                                </button>
+                            </div>
                         </div>
 
                         <button
                             onClick={handleStartRound3}
-                            className="w-full bg-purple-600 hover:bg-purple-700 text-white font-semibold py-3 px-6 rounded-lg transition-all duration-300 hover:scale-105 transform shadow-lg"
+                            disabled={!roundCodes.round3}
+                            className="w-full bg-purple-600 hover:bg-purple-700 disabled:bg-gray-600 disabled:cursor-not-allowed text-white font-semibold py-3 px-6 rounded-lg transition-all duration-300 hover:scale-105 transform shadow-lg"
                         >
                             Start Round 3
                         </button>

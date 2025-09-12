@@ -101,8 +101,8 @@ const AdminDashboard = () => {
                         <button
                             onClick={() => setActiveTab('overview')}
                             className={`px-6 py-3 rounded-xl font-semibold transition-all duration-200 ${activeTab === 'overview'
-                                    ? 'bg-cyan-600 text-white shadow-lg'
-                                    : 'bg-slate-700 text-slate-300 hover:bg-slate-600'
+                                ? 'bg-cyan-600 text-white shadow-lg'
+                                : 'bg-slate-700 text-slate-300 hover:bg-slate-600'
                                 }`}
                         >
                             Overview
@@ -110,8 +110,8 @@ const AdminDashboard = () => {
                         <button
                             onClick={() => setActiveTab('leaderboard')}
                             className={`px-6 py-3 rounded-xl font-semibold transition-all duration-200 ${activeTab === 'leaderboard'
-                                    ? 'bg-cyan-600 text-white shadow-lg'
-                                    : 'bg-slate-700 text-slate-300 hover:bg-slate-600'
+                                ? 'bg-cyan-600 text-white shadow-lg'
+                                : 'bg-slate-700 text-slate-300 hover:bg-slate-600'
                                 }`}
                         >
                             Leaderboard
@@ -133,16 +133,16 @@ const AdminDashboard = () => {
                             <div className="space-y-4">
                                 {leaderboard.map((team, index) => (
                                     <div key={team.teamName} className={`p-6 rounded-xl border transition-all duration-200 ${index === 0 ? 'border-yellow-400 bg-yellow-400/10' :
-                                            index === 1 ? 'border-gray-300 bg-gray-300/10' :
-                                                index === 2 ? 'border-orange-400 bg-orange-400/10' :
-                                                    'border-slate-600 bg-slate-700'
+                                        index === 1 ? 'border-gray-300 bg-gray-300/10' :
+                                            index === 2 ? 'border-orange-400 bg-orange-400/10' :
+                                                'border-slate-600 bg-slate-700'
                                         }`}>
                                         <div className="flex items-center justify-between">
                                             <div className="flex items-center space-x-4">
                                                 <div className={`w-12 h-12 rounded-full flex items-center justify-center font-bold text-lg ${index === 0 ? 'bg-yellow-400 text-yellow-900' :
-                                                        index === 1 ? 'bg-gray-300 text-gray-900' :
-                                                            index === 2 ? 'bg-orange-400 text-orange-900' :
-                                                                'bg-slate-600 text-slate-200'
+                                                    index === 1 ? 'bg-gray-300 text-gray-900' :
+                                                        index === 2 ? 'bg-orange-400 text-orange-900' :
+                                                            'bg-slate-600 text-slate-200'
                                                     }`}>
                                                     {index + 1}
                                                 </div>
