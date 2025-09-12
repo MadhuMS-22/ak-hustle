@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import apiService from '../services/api';
-import round3Service from '../services/round3Service';
+import apiService from '../services/api'
 import adminAuthService from '../services/adminAuthService';
+import round3Service from '../services/round3Service';
 
 const AdminPage = () => {
     const navigate = useNavigate();
@@ -26,6 +26,28 @@ const AdminPage = () => {
     const [newRoundCodes, setNewRoundCodes] = useState({ round2: '', round3: '' });
     const [settingCode, setSettingCode] = useState({ round2: false, round3: false });
     const [loading, setLoading] = useState(true);
+
+    // Helper function to make admin API calls
+    const adminApiCall = async (endpoint, options = {}) => {
+        const url = `${import.meta.env.VITE_API_URL || 'http://localhost:5009/api'}${endpoint}`;
+        const headers = adminAuthService.getAdminHeaders();
+
+        const response = await fetch(url, {
+            ...options,
+            headers: {
+                ...headers,
+                ...options.headers
+            }
+        });
+
+        const data = await response.json();
+
+        if (!response.ok) {
+            throw new Error(data.message || `HTTP error! status: ${response.status}`);
+        }
+
+        return data;
+    };
     const [searchTerm, setSearchTerm] = useState('');
     const [statusFilter, setStatusFilter] = useState('all');
 
@@ -77,16 +99,16 @@ const AdminPage = () => {
         try {
             setLoading(true);
             // Fetch teams from admin endpoint
-            const teamsResponse = await apiService.get('/admin/teams');
+            const teamsResponse = await adminApiCall('/admin/teams');
             setTeams(teamsResponse.data.teams || []);
 
             // Fetch competition stats and round codes from admin endpoint
-            const statsResponse = await apiService.get('/admin/stats');
+            const statsResponse = await adminApiCall('/admin/stats');
             setStats(statsResponse.data.stats);
             setRoundCodes(statsResponse.data.roundCodes);
 
             // Fetch round code statistics
-            const codesResponse = await apiService.get('/admin/round-codes');
+            const codesResponse = await adminApiCall('/admin/round-codes');
             if (codesResponse.data.roundCodes.round2) {
                 setRoundCodeStats(prev => ({
                     ...prev,
@@ -215,7 +237,7 @@ const AdminPage = () => {
 
     const handleAnnounceRound1 = async () => {
         try {
-            const response = await apiService.post('/admin/announce/1');
+            const response = await adminApiCall('/admin/announce/1', { method: 'POST' });
             alert(response.message || 'Round 1 results announced!');
         } catch (error) {
             console.error('Error announcing round 1 results:', error);
@@ -225,7 +247,7 @@ const AdminPage = () => {
 
     const handleAnnounceRound = async (roundNumber) => {
         try {
-            const response = await apiService.post(`/admin/announce/${roundNumber}`);
+            const response = await adminApiCall(`/admin/announce/${roundNumber}`, { method: 'POST' });
             alert(response.message || `Round ${roundNumber} results announced!`);
         } catch (error) {
             console.error(`Error announcing round ${roundNumber} results:`, error);
@@ -239,7 +261,10 @@ const AdminPage = () => {
                 alert('Please enter Round 2 code');
                 return;
             }
-            const response = await apiService.post('/admin/start/2', { code: roundCodes.round2 });
+            const response = await adminApiCall('/admin/start/2', {
+                method: 'POST',
+                body: JSON.stringify({ code: roundCodes.round2 })
+            });
             alert(response.message || `Round 2 started with code: ${roundCodes.round2}`);
         } catch (error) {
             console.error('Error starting round 2:', error);
@@ -253,7 +278,10 @@ const AdminPage = () => {
                 alert('Please enter Round 3 code');
                 return;
             }
-            const response = await apiService.post('/admin/start/3', { code: roundCodes.round3 });
+            const response = await adminApiCall('/admin/start/3', {
+                method: 'POST',
+                body: JSON.stringify({ code: roundCodes.round3 })
+            });
             alert(response.message || `Round 3 started with code: ${roundCodes.round3}`);
         } catch (error) {
             console.error('Error starting round 3:', error);
@@ -269,12 +297,15 @@ const AdminPage = () => {
                 alert(`Please enter a code for Round ${roundNumber}`);
                 return;
             }
-            
-            const response = await apiService.post(`/admin/round-codes`, {
-                round: roundNumber,
-                code: code.trim()
+
+            const response = await adminApiCall(`/admin/round-codes`, {
+                method: 'POST',
+                body: JSON.stringify({
+                    round: roundNumber,
+                    code: code.trim()
+                })
             });
-            
+
             if (response.success) {
                 setRoundCodes({ ...roundCodes, [`round${roundNumber}`]: code.trim() });
                 setNewRoundCodes({ ...newRoundCodes, [`round${roundNumber}`]: '' });
@@ -284,7 +315,7 @@ const AdminPage = () => {
             }
         } catch (error) {
             console.error(`Error setting Round ${roundNumber} code:`, error);
-            alert(`Error setting Round ${roundNumber} code`);
+            alert(`Error setting Round ${roundNumber} code: ${error.message}`);
         } finally {
             setSettingCode({ ...settingCode, [`round${roundNumber}`]: false });
         }
@@ -293,7 +324,9 @@ const AdminPage = () => {
     const handleResetCode = async (roundNumber) => {
         try {
             if (window.confirm(`Are you sure you want to reset Round ${roundNumber} code?`)) {
-                const response = await apiService.delete(`/admin/round-codes/${roundNumber}`);
+                const response = await adminApiCall(`/admin/round-codes/${roundNumber}`, {
+                    method: 'DELETE'
+                });
                 if (response.success) {
                     setRoundCodes({ ...roundCodes, [`round${roundNumber}`]: '' });
                     setNewRoundCodes({ ...newRoundCodes, [`round${roundNumber}`]: '' });
@@ -304,14 +337,17 @@ const AdminPage = () => {
             }
         } catch (error) {
             console.error(`Error resetting Round ${roundNumber} code:`, error);
-            alert(`Error resetting Round ${roundNumber} code`);
+            alert(`Error resetting Round ${roundNumber} code: ${error.message}`);
         }
     };
 
     const updateTeamStatus = async (teamId, type, status) => {
         try {
-            const response = await apiService.put(`/admin/teams/${teamId}/status`, {
-                competitionStatus: status
+            const response = await adminApiCall(`/admin/teams/${teamId}/status`, {
+                method: 'PUT',
+                body: JSON.stringify({
+                    competitionStatus: status
+                })
             });
 
             // Update local state

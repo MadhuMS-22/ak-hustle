@@ -268,22 +268,22 @@ const setRoundCode = async (req, res) => {
             });
         }
 
-        // Deactivate any existing code for this round
-        await RoundCodes.updateMany(
+        // Update or create round code using findOneAndUpdate
+        const newCode = await RoundCodes.findOneAndUpdate(
             { round: parseInt(round) },
-            { isActive: false }
+            {
+                code: code.trim(),
+                isActive: true,
+                usageCount: 0,
+                completionCount: 0,
+                updatedAt: Date.now()
+            },
+            {
+                new: true,
+                upsert: true,
+                setDefaultsOnInsert: true
+            }
         );
-
-        // Create new active code
-        const newCode = new RoundCodes({
-            round: parseInt(round),
-            code: code.trim(),
-            isActive: true,
-            usageCount: 0,
-            completionCount: 0
-        });
-
-        await newCode.save();
 
         res.status(200).json({
             success: true,
