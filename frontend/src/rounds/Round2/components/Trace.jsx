@@ -1,125 +1,181 @@
-import React, { useState, useEffect } from 'react';
-import round2Service from '../../../services/round2Service';
+import React, { useState, useEffect, useRef } from 'react';
+import api from '../services/api';
 
 const Trace = ({ onSubmit, teamId }) => {
-    const [trace, setTrace] = useState('');
-    const [timeLeft, setTimeLeft] = useState(900); // 15 minutes
-    const [isSubmitted, setIsSubmitted] = useState(false);
-    const [startTime] = useState(Date.now());
+    const [output, setOutput] = useState('');
+    const [timeLeft, setTimeLeft] = useState(300); // 5 minutes
+    const [isRunning, setIsRunning] = useState(false);
+    const [submitting, setSubmitting] = useState(false);
+    const autoSaveTimeoutRef = useRef(null);
+
+    const codeToTrace = `#include <stdio.h>
+
+int mystery(int n) {
+    if (n <= 1) return 1;
+    return n * mystery(n - 1);
+}
+
+int main() {
+    int result = mystery(4);
+    printf("Result: %d\\n", result);
+    return 0;
+}`;
 
     useEffect(() => {
-        if (timeLeft > 0 && !isSubmitted) {
-            const timer = setTimeout(() => setTimeLeft(timeLeft - 1), 1000);
-            return () => clearTimeout(timer);
-        } else if (timeLeft === 0 && !isSubmitted) {
+        let interval = null;
+
+        // Auto-start timer when component mounts
+        if (!isRunning && timeLeft === 300) {
+            setIsRunning(true);
+        }
+
+        if (isRunning && timeLeft > 0) {
+            interval = setInterval(() => {
+                setTimeLeft(time => time - 1);
+            }, 1000);
+        } else if (timeLeft === 0) {
             handleSubmit();
         }
-    }, [timeLeft, isSubmitted]);
 
-    // Auto-save every 2 seconds
-    useEffect(() => {
-        if (!isSubmitted && teamId) {
-            const autoSaveInterval = setInterval(() => {
-                const timeTaken = Math.floor((Date.now() - startTime) / 1000);
-                round2Service.autoSaveCodingSolution({
+        return () => clearInterval(interval);
+    }, [isRunning, timeLeft]);
+
+    // Auto-save functionality
+    const autoSave = async () => {
+        if (output.trim() && teamId) {
+            try {
+                const timeTaken = Math.max(0, 300 - timeLeft);
+                await api.post('/quiz/code/autosave', {
                     teamId,
                     challengeType: 'trace',
-                    solution: trace,
-                    timeTaken
-                }).catch(error => {
-                    console.error('Auto-save failed:', error);
+                    code: output,
+                    timeTaken: timeTaken
                 });
-            }, 2000);
-
-            return () => clearInterval(autoSaveInterval);
+                console.log('Auto-saved trace progress');
+            } catch (error) {
+                console.error('Auto-save failed:', error);
+            }
         }
-    }, [trace, teamId, isSubmitted, startTime]);
-
-    const formatTime = (seconds) => {
-        const minutes = Math.floor(seconds / 60);
-        const secs = seconds % 60;
-        return `${minutes}:${secs.toString().padStart(2, '0')}`;
     };
 
-    const handleSubmit = () => {
-        if (!isSubmitted) {
-            setIsSubmitted(true);
-            const timeTaken = Math.floor((Date.now() - startTime) / 1000);
-            onSubmit(trace, timeTaken);
+    // Auto-save on output change
+    useEffect(() => {
+        if (autoSaveTimeoutRef.current) {
+            clearTimeout(autoSaveTimeoutRef.current);
         }
+
+        autoSaveTimeoutRef.current = setTimeout(() => {
+            autoSave();
+        }, 2000); // Auto-save after 2 seconds of inactivity
+
+        return () => {
+            if (autoSaveTimeoutRef.current) {
+                clearTimeout(autoSaveTimeoutRef.current);
+            }
+        };
+    }, [output]);
+
+    // Auto-save when timer ends
+    useEffect(() => {
+        if (timeLeft === 0) {
+            autoSave();
+        }
+    }, [timeLeft]);
+
+    const startTimer = () => {
+        setIsRunning(true);
+    };
+
+    const handleSubmit = async () => {
+        if (!output.trim() || submitting) return;
+
+        setSubmitting(true);
+        const timeTaken = Math.max(0, 300 - timeLeft); // Ensure it's never negative or NaN
+        const code = codeToTrace; // The code being traced
+
+        try {
+            await onSubmit(code, timeTaken);
+        } catch (error) {
+            console.error('Error submitting output:', error);
+        } finally {
+            setSubmitting(false);
+        }
+    };
+
+    const formatTime = (seconds) => {
+        const mins = Math.floor(seconds / 60);
+        const secs = seconds % 60;
+        return `${mins}:${secs.toString().padStart(2, '0')}`;
     };
 
     return (
-        <div className="h-screen bg-gradient-to-br from-yellow-900 via-slate-900 to-slate-900 flex flex-col">
-            {/* Header */}
-            <div className="bg-slate-800 border-b border-slate-700 p-4">
-                <div className="flex justify-between items-center max-w-6xl mx-auto">
-                    <h1 className="text-2xl font-bold text-white">🔍 Trace Challenge</h1>
-                    <div className="flex items-center gap-4">
-                        <div className="text-white">
-                            <span className="text-gray-300">Time Left:</span>
-                            <span className={`ml-2 font-mono font-bold ${timeLeft < 60 ? 'text-red-400' : 'text-green-400'}`}>
-                                {formatTime(timeLeft)}
-                            </span>
+        <div className="min-h-screen bg-gradient-to-br from-slate-900 via-green-900 to-slate-900 p-4">
+            <div className="max-w-7xl mx-auto">
+                <div className="bg-slate-800 rounded-2xl shadow-2xl p-6 mb-6 border border-slate-700">
+                    <div className="flex justify-between items-center mb-6">
+                        <div>
+                            <h2 className="text-3xl font-bold text-cyan-400 mb-2">Trace The Program</h2>
+                            <div className="w-16 h-1 bg-cyan-400 rounded-full"></div>
                         </div>
+                        <div className="text-right">
+                            <div className={`text-4xl font-mono font-bold ${timeLeft < 60 ? 'text-red-400 animate-pulse' : 'text-cyan-400'
+                                }`}>
+                                Time Left: {formatTime(timeLeft)}
+                            </div>
+                            {!isRunning && timeLeft === 300 && (
+                                <div className="mt-3 text-green-400 text-sm">
+                                    Timer starting automatically...
+                                </div>
+                            )}
+                        </div>
+                    </div>
+
+                    <div className="bg-slate-700 rounded-xl p-6 border border-slate-600">
+                        <h3 className="text-xl font-bold text-slate-200 mb-3">Instructions:</h3>
+                        <p className="text-slate-300 leading-relaxed">
+                            Trace through the following recursive function and determine what output it will produce.
+                            This is a factorial function - trace through the recursive calls step by step.
+                        </p>
                     </div>
                 </div>
-            </div>
 
-            {/* Main Content */}
-            <div className="flex-1 p-6">
-                <div className="max-w-6xl mx-auto">
-                    <div className="bg-slate-800 rounded-xl p-6 mb-6 border border-slate-700">
-                        <h2 className="text-xl font-bold text-white mb-4">Challenge: Trace Recursive Function</h2>
-                        <p className="text-gray-300 mb-4">
-                            Trace through the execution of the following recursive function when called with factorial(4).
-                        </p>
-
-                        <div className="bg-slate-700 rounded-lg p-4 mb-4">
-                            <h3 className="text-white font-semibold mb-2">Function:</h3>
-                            <pre className="text-blue-400 font-mono text-sm">
-                                {`int factorial(int n) {
-    if (n <= 1) {
-        return 1;
-    }
-    return n * factorial(n - 1);
-}`}
-                            </pre>
-                        </div>
-
-                        <div className="bg-slate-700 rounded-lg p-4">
-                            <h3 className="text-white font-semibold mb-2">Function Call:</h3>
-                            <pre className="text-green-400 font-mono text-sm">
-                                factorial(4)
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                    <div className="bg-slate-800 rounded-2xl shadow-xl p-6 border border-slate-700">
+                        <h3 className="text-2xl font-bold text-slate-200 mb-4 flex items-center">
+                            <span className="bg-green-600 text-white px-3 py-1 rounded-lg text-sm font-semibold mr-3">PROGRAM</span>
+                            Program Code
+                        </h3>
+                        <div className="bg-slate-900 rounded-xl p-4 overflow-x-auto border border-slate-600">
+                            <pre className="text-green-400 text-sm font-mono leading-relaxed">
+                                <code>{codeToTrace}</code>
                             </pre>
                         </div>
                     </div>
 
-                    <div className="bg-slate-800 rounded-xl p-6 border border-slate-700">
-                        <h3 className="text-lg font-bold text-white mb-4">Your Trace:</h3>
-                        <p className="text-gray-300 mb-4">
-                            Show the step-by-step execution, including all recursive calls and return values.
-                        </p>
+                    <div className="bg-slate-800 rounded-2xl shadow-xl p-6 border border-slate-700">
+                        <h3 className="text-2xl font-bold text-slate-200 mb-4 flex items-center">
+                            <span className="bg-blue-600 text-white px-3 py-1 rounded-lg text-sm font-semibold mr-3">OUTPUT</span>
+                            Trace Output
+                        </h3>
                         <textarea
-                            value={trace}
-                            onChange={(e) => setTrace(e.target.value)}
-                            className="w-full h-96 bg-slate-900 text-white p-4 rounded-lg font-mono text-sm resize-none focus:outline-none focus:ring-2 focus:ring-yellow-500 border border-slate-600"
-                            placeholder="Enter your trace here...&#10;&#10;Example:&#10;factorial(4)&#10;  n = 4, n > 1, so return 4 * factorial(3)&#10;  factorial(3)&#10;    n = 3, n > 1, so return 3 * factorial(2)&#10;    ..."
-                            disabled={isSubmitted}
+                            value={output}
+                            onChange={(e) => setOutput(e.target.value)}
+                            placeholder="Enter the expected output here..."
+                            className="w-full h-32 p-4 bg-slate-900 border border-slate-600 rounded-xl font-mono text-sm text-slate-200 placeholder-slate-500 resize-none focus:outline-none focus:ring-2 focus:ring-cyan-400 focus:border-cyan-400 transition-all duration-200"
                         />
-                    </div>
 
-                    <div className="mt-6 text-center">
-                        <button
-                            onClick={handleSubmit}
-                            disabled={isSubmitted}
-                            className={`px-8 py-3 rounded-lg font-bold text-lg transition duration-300 ${isSubmitted
-                                ? 'bg-gray-600 text-gray-400 cursor-not-allowed'
-                                : 'bg-yellow-600 hover:bg-yellow-700 text-white'
-                                }`}
-                        >
-                            {isSubmitted ? 'Submitted ✓' : 'Submit Trace'}
-                        </button>
+                        <div className="mt-4 flex gap-4">
+                            <button
+                                onClick={handleSubmit}
+                                disabled={!output.trim() || timeLeft === 0 || submitting}
+                                className={`flex-1 py-3 px-6 rounded-xl font-bold transition-all duration-200 transform hover:scale-105 ${output.trim() && timeLeft > 0 && !submitting
+                                    ? 'bg-gradient-to-r from-cyan-500 to-green-500 hover:from-cyan-600 hover:to-green-600 text-white shadow-lg hover:shadow-xl'
+                                    : 'bg-slate-600 text-slate-400 cursor-not-allowed'
+                                    }`}
+                            >
+                                {submitting ? 'Submitting...' : 'Submit Trace'}
+                            </button>
+                        </div>
                     </div>
                 </div>
             </div>

@@ -51,7 +51,7 @@ const TeamPage = () => {
         // Update rounds based on team's competition status
         console.log('Team competition status:', team.competitionStatus)
         console.log('Team scores:', team.scores)
-        
+
         const updatedRounds = {
           round1: {
             status: ['registered', 'round1_completed', 'round2_completed', 'round3_completed'].includes(team.competitionStatus) ? 'completed' : 'pending',
@@ -59,19 +59,19 @@ const TeamPage = () => {
             score: team.scores?.round1 || null
           },
           round2: {
-            status: ['round2_completed', 'round3_completed'].includes(team.competitionStatus) ? 'completed' : 
-                   ['registered', 'round1_completed'].includes(team.competitionStatus) ? 'available' : 'locked',
+            status: ['round2_completed', 'round3_completed'].includes(team.competitionStatus) ? 'completed' :
+              ['registered', 'round1_completed'].includes(team.competitionStatus) ? 'available' : 'locked',
             result: ['round2_completed', 'round3_completed'].includes(team.competitionStatus) ? true : null,
             score: team.scores?.round2 || null
           },
           round3: {
-            status: team.competitionStatus === 'round3_completed' ? 'completed' : 
-                   ['round2_completed'].includes(team.competitionStatus) ? 'available' : 'locked',
+            status: team.competitionStatus === 'round3_completed' ? 'completed' :
+              ['round2_completed'].includes(team.competitionStatus) ? 'available' : 'locked',
             result: team.competitionStatus === 'round3_completed' ? true : null,
             score: team.scores?.round3 || null
           }
         }
-        
+
         console.log('Updated rounds:', updatedRounds)
         setRounds(updatedRounds)
       }
@@ -159,7 +159,7 @@ const TeamPage = () => {
       round1Result: rounds.round1.result,
       round2Result: rounds.round2.result
     })
-    
+
     if (roundNumber === 1) {
       return round.status === 'completed' ? (round.result ? 'passed' : 'failed') : 'pending'
     } else if (roundNumber === 2) {

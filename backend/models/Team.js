@@ -132,6 +132,56 @@ const teamSchema = new mongoose.Schema({
     },
     round3SubmittedAt: {
         type: Date
+    },
+    // Quiz/Round 2 specific fields
+    startTime: {
+        type: Date,
+        default: null
+    },
+    endTime: {
+        type: Date,
+        default: null
+    },
+    totalTimeTaken: {
+        type: Number,
+        default: 0
+    },
+    isQuizCompleted: {
+        type: Boolean,
+        default: false
+    },
+    totalScore: {
+        type: Number,
+        default: 0
+    },
+    unlockedQuestions: {
+        q1: { type: Boolean, default: true },
+        q2: { type: Boolean, default: false },
+        q3: { type: Boolean, default: false },
+        q4: { type: Boolean, default: false },
+        q5: { type: Boolean, default: false },
+        q6: { type: Boolean, default: false }
+    },
+    completedQuestions: {
+        q1: { type: Boolean, default: false },
+        q2: { type: Boolean, default: false },
+        q3: { type: Boolean, default: false },
+        q4: { type: Boolean, default: false },
+        q5: { type: Boolean, default: false },
+        q6: { type: Boolean, default: false }
+    },
+    scores: {
+        q1: { type: Number, default: 0 },
+        q2: { type: Number, default: 0 },
+        q3: { type: Number, default: 0 },
+        q4: { type: Number, default: 0 },
+        q5: { type: Number, default: 0 },
+        q6: { type: Number, default: 0 }
+    },
+    aptitudeAttempts: {
+        q1: { type: Number, default: 0 },
+        q2: { type: Number, default: 0 },
+        q3: { type: Number, default: 0 }
     }
 }, {
     timestamps: true

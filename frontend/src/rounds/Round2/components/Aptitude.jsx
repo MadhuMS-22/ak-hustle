@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import round2Service from '../../../services/round2Service';
+import api from '../services/api';
 
 const Aptitude = ({ questionStep, onSubmit, teamProgress }) => {
     const [question, setQuestion] = useState(null);
@@ -7,44 +7,16 @@ const Aptitude = ({ questionStep, onSubmit, teamProgress }) => {
     const [loading, setLoading] = useState(true);
     const [submitting, setSubmitting] = useState(false);
 
-    // Define questions locally (matching original quiz-3)
-    const aptitudeQuestions = {
-        0: {
-            question: "What is the time complexity of binary search?",
-            options: ["O(n)", "O(log n)", "O(n²)", "O(1)"],
-            correct: 1
-        },
-        1: {
-            question: "Which data structure uses LIFO principle?",
-            options: ["Queue", "Stack", "Array", "Linked List"],
-            correct: 1
-        },
-        2: {
-            question: "What does CPU stand for?",
-            options: ["Central Processing Unit", "Computer Processing Unit", "Central Program Unit", "Computer Program Unit"],
-            correct: 0
-        }
-    };
-
     useEffect(() => {
         const fetchQuestion = async () => {
             try {
                 setLoading(true);
-                // Fetch question from API
-                const response = await round2Service.getAptitudeQuestion(questionStep);
-                if (response) {
-                    setQuestion(response);
-                    setSelected(null);
-                }
+                const response = await api.get(`/quiz/apt/${questionStep}`);
+                setQuestion(response.data);
+                setSelected(null);
                 setLoading(false);
             } catch (error) {
                 console.error('Error fetching question:', error);
-                // Fallback to local questions if API fails
-                const questionData = aptitudeQuestions[questionStep];
-                if (questionData) {
-                    setQuestion(questionData);
-                    setSelected(null);
-                }
                 setLoading(false);
             }
         };
@@ -84,95 +56,70 @@ const Aptitude = ({ questionStep, onSubmit, teamProgress }) => {
         return (
             <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900">
                 <div className="text-center">
-                    <div className="text-red-400 text-xl font-semibold">Question not found</div>
+                    <div className="text-cyan-400 text-xl font-semibold mb-4">Question not found</div>
+                    <div className="text-slate-300">Please try refreshing the page</div>
                 </div>
             </div>
         );
     }
 
     return (
-        <div className="h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 p-6 overflow-y-auto">
+        <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 p-4">
             <div className="max-w-4xl mx-auto">
-                <div className="bg-slate-800 rounded-2xl shadow-2xl border border-slate-700 overflow-hidden">
-                    {/* Header */}
-                    <div className="bg-gradient-to-r from-cyan-600 to-purple-600 px-8 py-6">
-                        <div className="flex items-center justify-between">
-                            <div>
-                                <h1 className="text-3xl font-bold text-white">Aptitude Question {questionStep + 1}</h1>
-                                <p className="text-cyan-100 mt-1">Choose the correct answer</p>
-                            </div>
-                            <div className="text-right">
-                                <div className="text-2xl font-bold text-white">Q{questionStep + 1}</div>
-                                <div className="text-cyan-100 text-sm">Aptitude</div>
-                            </div>
-                        </div>
-                    </div>
-
-                    {/* Question Content */}
-                    <div className="p-8">
-                        <div className="mb-8">
-                            <h2 className="text-2xl font-semibold text-white mb-6 leading-relaxed">
-                                {question.question}
-                            </h2>
-
-                            <div className="space-y-4">
-                                {question.options.map((option, index) => (
-                                    <button
-                                        key={index}
-                                        onClick={() => handleOptionClick(index)}
-                                        className={`w-full p-4 text-left rounded-xl border-2 transition-all duration-200 transform hover:scale-[1.02] ${selected === index
-                                            ? 'border-cyan-400 bg-cyan-400/10 shadow-lg'
-                                            : 'border-slate-600 bg-slate-700 hover:border-cyan-300 hover:bg-slate-600'
-                                            }`}
-                                    >
-                                        <div className="flex items-center">
-                                            <div className={`w-6 h-6 rounded-full border-2 mr-4 flex items-center justify-center ${selected === index
-                                                ? 'border-cyan-400 bg-cyan-400'
-                                                : 'border-slate-400'
-                                                }`}>
-                                                {selected === index && (
-                                                    <div className="w-2 h-2 bg-white rounded-full"></div>
-                                                )}
-                                            </div>
-                                            <span className="text-white font-medium text-lg">
-                                                {String.fromCharCode(65 + index)}. {option}
-                                            </span>
-                                        </div>
-                                    </button>
-                                ))}
-                            </div>
-                        </div>
-
-                        {/* Submit Button */}
-                        <div className="flex justify-center">
-                            <button
-                                onClick={handleSubmit}
-                                disabled={selected === null || submitting}
-                                className={`px-8 py-4 rounded-xl font-bold text-lg transition-all duration-300 transform hover:scale-105 ${selected === null || submitting
-                                    ? 'bg-slate-600 text-slate-400 cursor-not-allowed'
-                                    : 'bg-green-600 hover:bg-green-700 text-white shadow-lg'
-                                    }`}
-                            >
-                                {submitting ? (
-                                    <div className="flex items-center">
-                                        <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white mr-2"></div>
-                                        Submitting...
-                                    </div>
-                                ) : (
-                                    'Submit Answer'
-                                )}
-                            </button>
-                        </div>
-
-                        {/* Progress Info */}
+                <div className="bg-slate-800 rounded-2xl shadow-2xl p-8 border border-slate-700">
+                    <div className="text-center mb-8">
+                        <h2 className="text-4xl font-bold text-cyan-400 mb-2">
+                            Aptitude Question
+                        </h2>
+                        <div className="w-24 h-1 bg-cyan-400 mx-auto rounded-full mb-4"></div>
                         {teamProgress && (
-                            <div className="mt-6 text-center">
-                                <div className="text-slate-400 text-sm">
-                                    Attempts left: {2 - (teamProgress.aptitudeAttempts?.[`q${questionStep + 1}`] || 0)}/2
-                                </div>
+                            <div className="bg-yellow-600/20 border border-yellow-600 rounded-lg p-3 max-w-md mx-auto">
+                                <p className="text-yellow-400 text-sm font-semibold">
+                                    You have {2 - teamProgress.aptitudeAttempts[`q${questionStep + 1}`]} out of 2 attempts remaining
+                                </p>
                             </div>
                         )}
                     </div>
+
+                    <div className="mb-8">
+                        <div className="bg-slate-700 rounded-xl p-6 mb-6 border border-slate-600">
+                            <p className="text-xl text-slate-200 leading-relaxed">{question.question}</p>
+                        </div>
+
+                        <div className="space-y-3">
+                            {question.options.map((option, index) => (
+                                <div
+                                    key={index}
+                                    onClick={() => handleOptionClick(index)}
+                                    className={`p-4 rounded-xl border-2 cursor-pointer transition-all duration-200 transform hover:scale-[1.02] ${selected === index
+                                        ? 'border-cyan-400 bg-cyan-400 text-slate-900 shadow-lg'
+                                        : 'border-slate-600 hover:border-cyan-300 hover:bg-slate-700 text-slate-200'
+                                        }`}
+                                >
+                                    <div className="flex items-center">
+                                        <div className={`w-8 h-8 rounded-full border-2 mr-4 flex items-center justify-center font-bold ${selected === index
+                                            ? 'border-slate-900 bg-slate-900 text-cyan-400'
+                                            : 'border-slate-500 text-slate-400'
+                                            }`}>
+                                            {String.fromCharCode(65 + index)}
+                                        </div>
+                                        <span className="text-lg font-medium">{option}</span>
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+                    </div>
+
+                    <button
+                        onClick={handleSubmit}
+                        disabled={selected === null || submitting}
+                        className={`w-full py-4 px-6 rounded-xl font-bold text-lg transition-all duration-200 transform hover:scale-105 ${selected !== null && !submitting
+                            ? 'bg-gradient-to-r from-cyan-500 to-blue-500 hover:from-cyan-600 hover:to-blue-600 text-white shadow-lg hover:shadow-xl'
+                            : 'bg-slate-600 text-slate-400 cursor-not-allowed'
+                            }`}
+                    >
+                        {submitting ? 'Submitting...' : 'Submit Answer'}
+                    </button>
                 </div>
             </div>
         </div>

@@ -1,125 +1,185 @@
-import React, { useState, useEffect } from 'react';
-import round2Service from '../../../services/round2Service';
+import React, { useState, useEffect, useRef } from 'react';
+import api from '../services/api';
 
 const Debug = ({ onSubmit, teamId }) => {
-    const [code, setCode] = useState(`#include <stdio.h>
-int main() {
-    int num1, num2, sum;
-
-    printf("Enter first number: ");
-    scanf("%d", &num1);
-
-    printf("Enter second number: ");
-    scanf("%d", &num2);
-
-    sum = num1 + num2;
-
-    printf("Sum = %d\\n", sum);
-
-    return 0;
-}`);
+    const [code, setCode] = useState('');
     const [timeLeft, setTimeLeft] = useState(300); // 5 minutes
-    const [isSubmitted, setIsSubmitted] = useState(false);
-    const [startTime] = useState(Date.now());
+    const [isRunning, setIsRunning] = useState(false);
+    const [submitting, setSubmitting] = useState(false);
+    const autoSaveTimeoutRef = useRef(null);
+
+    const codeToDebug = `#include <stdio.h>
+
+int main() {
+    int arr[] = {1, 2, 3, 4, 5};
+    int sum = 0;
+    
+    for (int i = 0; i <= 5; i++) {
+        sum += arr[i];
+    }
+    
+    printf("Sum: %d\\n", sum);
+    return 0;
+}`;
+
+    // Initialize code only once when component mounts
+    useEffect(() => {
+        setCode(codeToDebug);
+    }, []);
 
     useEffect(() => {
-        if (timeLeft > 0 && !isSubmitted) {
-            const timer = setTimeout(() => setTimeLeft(timeLeft - 1), 1000);
-            return () => clearTimeout(timer);
-        } else if (timeLeft === 0 && !isSubmitted) {
+        let interval = null;
+
+        // Auto-start timer when component mounts
+        if (!isRunning && timeLeft === 300) {
+            setIsRunning(true);
+        }
+
+        if (isRunning && timeLeft > 0) {
+            interval = setInterval(() => {
+                setTimeLeft(time => time - 1);
+            }, 1000);
+        } else if (timeLeft === 0) {
             handleSubmit();
         }
-    }, [timeLeft, isSubmitted]);
 
-    // Auto-save every 2 seconds
-    useEffect(() => {
-        if (!isSubmitted && teamId) {
-            const autoSaveInterval = setInterval(() => {
-                const timeTaken = Math.floor((Date.now() - startTime) / 1000);
-                round2Service.autoSaveCodingSolution({
+        return () => clearInterval(interval);
+    }, [isRunning, timeLeft]);
+
+    // Auto-save functionality
+    const autoSave = async () => {
+        if (code.trim() && teamId) {
+            try {
+                const timeTaken = Math.max(0, 300 - timeLeft); // Ensure it's never negative or NaN
+                await api.post('/quiz/code/autosave', {
                     teamId,
                     challengeType: 'debug',
-                    solution: code,
-                    timeTaken
-                }).catch(error => {
-                    console.error('Auto-save failed:', error);
+                    code,
+                    timeTaken: timeTaken
                 });
-            }, 2000);
-
-            return () => clearInterval(autoSaveInterval);
+                console.log('Auto-saved debug progress');
+            } catch (error) {
+                console.error('Auto-save failed:', error);
+            }
         }
-    }, [code, teamId, isSubmitted, startTime]);
-
-    const formatTime = (seconds) => {
-        const minutes = Math.floor(seconds / 60);
-        const secs = seconds % 60;
-        return `${minutes}:${secs.toString().padStart(2, '0')}`;
     };
 
-    const handleSubmit = () => {
-        if (!isSubmitted) {
-            setIsSubmitted(true);
-            const timeTaken = Math.floor((Date.now() - startTime) / 1000);
-            onSubmit(code, timeTaken);
+    // Auto-save on code change
+    useEffect(() => {
+        if (autoSaveTimeoutRef.current) {
+            clearTimeout(autoSaveTimeoutRef.current);
         }
+
+        autoSaveTimeoutRef.current = setTimeout(() => {
+            autoSave();
+        }, 2000); // Auto-save after 2 seconds of inactivity
+
+        return () => {
+            if (autoSaveTimeoutRef.current) {
+                clearTimeout(autoSaveTimeoutRef.current);
+            }
+        };
+    }, [code]);
+
+    // Auto-save when timer ends
+    useEffect(() => {
+        if (timeLeft === 0) {
+            autoSave();
+        }
+    }, [timeLeft]);
+
+    const startTimer = () => {
+        setIsRunning(true);
+    };
+
+    const handleSubmit = async () => {
+        if (!code.trim() || submitting) return;
+
+        setSubmitting(true);
+        const timeTaken = Math.max(0, 300 - timeLeft); // Ensure it's never negative or NaN
+
+        try {
+            await onSubmit(code, timeTaken);
+        } catch (error) {
+            console.error('Error submitting solution:', error);
+        } finally {
+            setSubmitting(false);
+        }
+    };
+
+    const formatTime = (seconds) => {
+        const mins = Math.floor(seconds / 60);
+        const secs = seconds % 60;
+        return `${mins}:${secs.toString().padStart(2, '0')}`;
     };
 
     return (
-        <div className="h-screen bg-gradient-to-br from-red-900 via-slate-900 to-slate-900 flex flex-col">
-            {/* Header */}
-            <div className="bg-slate-800 border-b border-slate-700 p-4">
-                <div className="flex justify-between items-center max-w-6xl mx-auto">
-                    <h1 className="text-2xl font-bold text-white">🐛 Debug Challenge</h1>
-                    <div className="flex items-center gap-4">
-                        <div className="text-white">
-                            <span className="text-gray-300">Time Left:</span>
-                            <span className={`ml-2 font-mono font-bold ${timeLeft < 60 ? 'text-red-400' : 'text-green-400'}`}>
-                                {formatTime(timeLeft)}
-                            </span>
+        <div className="min-h-screen bg-gradient-to-br from-slate-900 via-blue-900 to-slate-900 p-4">
+            <div className="max-w-7xl mx-auto">
+                <div className="bg-slate-800 rounded-2xl shadow-2xl p-6 mb-6 border border-slate-700">
+                    <div className="flex justify-between items-center mb-6">
+                        <div>
+                            <h2 className="text-3xl font-bold text-cyan-400 mb-2">Debug The Program</h2>
+                            <div className="w-16 h-1 bg-cyan-400 rounded-full"></div>
                         </div>
+                        <div className="text-right">
+                            <div className={`text-4xl font-mono font-bold ${timeLeft < 60 ? 'text-red-400 animate-pulse' : 'text-cyan-400'
+                                }`}>
+                                Time Left: {formatTime(timeLeft)}
+                            </div>
+                            {!isRunning && timeLeft === 300 && (
+                                <div className="mt-3 text-green-400 text-sm">
+                                    Timer starting automatically...
+                                </div>
+                            )}
+                        </div>
+                    </div>
+
+                    <div className="bg-slate-700 rounded-xl p-6 border border-slate-600">
+                        <h3 className="text-xl font-bold text-slate-200 mb-3">Instructions:</h3>
+                        <p className="text-slate-300 leading-relaxed">
+                            Find and fix the bug in the following C code. The program should calculate the sum of array elements correctly.
+                            Look for the off-by-one error in the loop condition.
+                        </p>
                     </div>
                 </div>
-            </div>
 
-            {/* Main Content */}
-            <div className="flex-1 p-6">
-                <div className="max-w-6xl mx-auto">
-                    <div className="bg-slate-800 rounded-xl p-6 mb-6 border border-slate-700">
-                        <h2 className="text-xl font-bold text-white mb-4">Challenge: Sum of Two Numbers</h2>
-                        <p className="text-gray-300 mb-4">
-                            The code below has bugs. Find and fix them to make it work correctly.
+                <div className="bg-slate-800 rounded-2xl shadow-xl p-6 border border-slate-700">
+                    <h3 className="text-2xl font-bold text-slate-200 mb-4 flex items-center">
+                        <span className="bg-cyan-600 text-white px-3 py-1 rounded-lg text-sm font-semibold mr-3">DEBUG</span>
+                        Fix the Code Below
+                    </h3>
+
+                    <div className="mb-4 p-4 bg-slate-700 rounded-lg border border-slate-600">
+                        <p className="text-slate-300 text-sm">
+                            Find and fix the bug in the code below.
                         </p>
-                        <div className="bg-slate-700 rounded-lg p-4 mb-4">
-                            <h3 className="text-white font-semibold mb-2">Expected Output:</h3>
-                            <pre className="text-green-400 font-mono text-sm">
-                                {`Enter first number: 5
-Enter second number: 7
-Sum = 12`}
-                            </pre>
-                        </div>
                     </div>
 
-                    <div className="bg-slate-800 rounded-xl p-6 border border-slate-700">
-                        <h3 className="text-lg font-bold text-white mb-4">Your Code:</h3>
-                        <textarea
-                            value={code}
-                            onChange={(e) => setCode(e.target.value)}
-                            className="w-full h-96 bg-slate-900 text-white p-4 rounded-lg font-mono text-sm resize-none focus:outline-none focus:ring-2 focus:ring-red-500 border border-slate-600"
-                            placeholder="Fix the bugs in the code above..."
-                            disabled={isSubmitted}
-                        />
-                    </div>
+                    <textarea
+                        value={code}
+                        onChange={(e) => setCode(e.target.value)}
+                        placeholder="Fix the code here..."
+                        className="w-full h-80 p-4 bg-slate-900 border border-slate-600 rounded-xl font-mono text-sm text-slate-200 placeholder-slate-500 resize-none focus:outline-none focus:ring-2 focus:ring-cyan-400 focus:border-cyan-400 transition-all duration-200"
+                    />
 
-                    <div className="mt-6 text-center">
+                    <div className="mt-6 flex gap-4">
                         <button
                             onClick={handleSubmit}
-                            disabled={isSubmitted}
-                            className={`px-8 py-3 rounded-lg font-bold text-lg transition duration-300 ${isSubmitted
-                                ? 'bg-gray-600 text-gray-400 cursor-not-allowed'
-                                : 'bg-red-600 hover:bg-red-700 text-white'
+                            disabled={!code.trim() || timeLeft === 0 || submitting}
+                            className={`flex-1 py-3 px-6 rounded-xl font-bold transition-all duration-200 transform hover:scale-105 ${code.trim() && timeLeft > 0 && !submitting
+                                ? 'bg-gradient-to-r from-cyan-500 to-blue-500 hover:from-cyan-600 hover:to-blue-600 text-white shadow-lg hover:shadow-xl'
+                                : 'bg-slate-600 text-slate-400 cursor-not-allowed'
                                 }`}
                         >
-                            {isSubmitted ? 'Submitted ✓' : 'Submit Solution'}
+                            {submitting ? 'Submitting...' : 'Submit Solution'}
+                        </button>
+
+                        <button
+                            onClick={() => setCode(codeToDebug)}
+                            className="px-6 py-3 bg-slate-600 hover:bg-slate-700 text-slate-200 rounded-xl font-semibold transition-all duration-200"
+                        >
+                            Reset Code
                         </button>
                     </div>
                 </div>
