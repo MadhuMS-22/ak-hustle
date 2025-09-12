@@ -1,5 +1,6 @@
 import express from 'express';
 import Team from '../models/Team.js';
+import RoundCodes from '../models/RoundCodes.js';
 import { protect, checkRoundEligibility, checkNotDisqualified } from '../middleware/auth.js';
 
 const router = express.Router();
@@ -197,11 +198,68 @@ const getCompetitionStats = async (req, res) => {
     }
 };
 
+// @desc    Get team details by ID
+// @route   GET /api/competition/team/:id
+// @access  Public
+const getTeamById = async (req, res) => {
+    try {
+        const team = await Team.findById(req.params.id).select('-password');
+
+        if (!team) {
+            return res.status(404).json({
+                success: false,
+                message: 'Team not found'
+            });
+        }
+
+        res.status(200).json({
+            success: true,
+            data: {
+                team
+            }
+        });
+    } catch (error) {
+        console.error('Get team by ID error:', error);
+        res.status(500).json({
+            success: false,
+            message: 'Server error while fetching team details'
+        });
+    }
+};
+
+// @desc    Get round codes for verification
+// @route   GET /api/competition/round-codes
+// @access  Public
+const getRoundCodes = async (req, res) => {
+    try {
+        const round2Code = await RoundCodes.getActiveCode(2);
+        const round3Code = await RoundCodes.getActiveCode(3);
+
+        res.status(200).json({
+            success: true,
+            data: {
+                roundCodes: {
+                    round2: round2Code?.code || '',
+                    round3: round3Code?.code || ''
+                }
+            }
+        });
+    } catch (error) {
+        console.error('Get round codes error:', error);
+        res.status(500).json({
+            success: false,
+            message: 'Server error while fetching round codes'
+        });
+    }
+};
+
 // Apply routes
 router.get('/leaderboard', getLeaderboard);
 router.get('/stats', getCompetitionStats);
 router.get('/status', protect, checkNotDisqualified, getCompetitionStatus);
 router.put('/status', protect, checkNotDisqualified, updateCompetitionStatus);
 router.post('/verify-round3-code', protect, checkNotDisqualified, verifyRound3Code);
+router.get('/team/:id', getTeamById);
+router.get('/round-codes', getRoundCodes);
 
 export default router;

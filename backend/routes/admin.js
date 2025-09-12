@@ -1,7 +1,7 @@
 import express from 'express';
 import Team from '../models/Team.js';
 import RoundCodes from '../models/RoundCodes.js';
-import { protect } from '../middleware/auth.js';
+import { adminAuth } from '../middleware/adminAuth.js';
 
 const router = express.Router();
 
@@ -246,11 +246,11 @@ const getRoundCodes = async (req, res) => {
 };
 
 // Apply routes
-router.get('/teams', protect, getAllTeams);
-router.put('/teams/:id/status', protect, updateTeamStatus);
-router.post('/announce/:round', protect, announceRoundResults);
-router.post('/start/:round', protect, startRound);
-router.get('/stats', protect, getCompetitionStats);
-router.get('/round-codes', protect, getRoundCodes);
+router.get('/teams', adminAuth, getAllTeams);
+router.put('/teams/:id/status', adminAuth, updateTeamStatus);
+router.post('/announce/:round', adminAuth, announceRoundResults);
+router.post('/start/:round', adminAuth, startRound);
+router.get('/stats', adminAuth, getCompetitionStats);
+router.get('/round-codes', adminAuth, getRoundCodes);
 
 export default router;

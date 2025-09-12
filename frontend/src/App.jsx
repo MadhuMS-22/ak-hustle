@@ -9,6 +9,9 @@ import Round3Page from './rounds/Round3/Round3Page';
 import Round3AdminPage from './rounds/Round3/Round3AdminPage';
 import TeamPage from './pages/TeamPage';
 import AdminPage from './pages/AdminPage';
+import AdminLoginPage from './pages/AdminLoginPage';
+import ProtectedAdminRoute from './components/ProtectedAdminRoute';
+import TestAdminLogin from './pages/TestAdminLogin';
 
 const App = () => {
   return (
@@ -22,7 +25,13 @@ const App = () => {
         <Route path="/round-3" element={<Round3Page />} />
         <Route path="/admin/round3" element={<Round3AdminPage />} />
         <Route path="/team" element={<TeamPage />} />
-        <Route path="/admin" element={<AdminPage />} />
+        <Route path="/admin/login" element={<AdminLoginPage />} />
+        <Route path="/test-admin" element={<TestAdminLogin />} />
+        <Route path="/admin" element={
+          <ProtectedAdminRoute>
+            <AdminPage />
+          </ProtectedAdminRoute>
+        } />
       </Routes>
     </Router>
   );

@@ -1,9 +1,32 @@
-import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import React, { useState, useEffect } from 'react';
+import { useNavigate, useLocation } from 'react-router-dom';
 
 const Navbar = () => {
   const navigate = useNavigate();
+  const location = useLocation();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [teamData, setTeamData] = useState(null);
+
+  // Check if user is logged in
+  useEffect(() => {
+    const storedTeam = localStorage.getItem('hustle_team');
+    if (storedTeam) {
+      const parsedTeamData = JSON.parse(storedTeam);
+      setTeamData(parsedTeamData);
+      setIsLoggedIn(true);
+    } else {
+      setIsLoggedIn(false);
+      setTeamData(null);
+    }
+  }, []);
+
+  const handleLogout = () => {
+    localStorage.removeItem('hustle_team');
+    setIsLoggedIn(false);
+    setTeamData(null);
+    navigate('/');
+  };
 
   return (
     <header className="fixed top-0 left-0 w-full bg-black bg-opacity-20 backdrop-blur-md z-50 shadow-lg border-b border-white border-opacity-10 transition-all duration-300">
@@ -21,18 +44,42 @@ const Navbar = () => {
 
           {/* Desktop Navigation Links */}
           <div className="hidden md:flex items-center space-x-4">
-            <button
-              onClick={() => navigate('/login')}
-              className="px-4 py-2 text-sm font-medium text-gray-300 hover:text-white transition-all duration-300 hover:bg-white hover:bg-opacity-10 rounded-lg backdrop-blur-md"
-            >
-              Login
-            </button>
-            <button
-              onClick={() => navigate('/register')}
-              className="px-6 py-2 bg-gradient-to-r from-purple-600 to-purple-700 text-white text-sm font-bold rounded-xl shadow-lg hover:from-purple-700 hover:to-purple-800 transition-all duration-300 hover:scale-105 transform backdrop-blur-md"
-            >
-              Register Team
-            </button>
+            {isLoggedIn ? (
+              <>
+                <span className="text-sm text-gray-300">
+                  Welcome, {teamData?.teamName || 'Team'}!
+                </span>
+                {location.pathname !== '/team' && (
+                  <button
+                    onClick={() => navigate('/team')}
+                    className="px-4 py-2 text-sm font-medium text-gray-300 hover:text-white transition-all duration-300 hover:bg-white hover:bg-opacity-10 rounded-lg backdrop-blur-md"
+                  >
+                    Dashboard
+                  </button>
+                )}
+                <button
+                  onClick={handleLogout}
+                  className="px-4 py-2 text-sm font-medium text-red-300 hover:text-red-200 hover:bg-red-500 hover:bg-opacity-20 transition-all duration-300 rounded-lg backdrop-blur-md"
+                >
+                  Logout
+                </button>
+              </>
+            ) : (
+              <>
+                <button
+                  onClick={() => navigate('/login')}
+                  className="px-4 py-2 text-sm font-medium text-gray-300 hover:text-white transition-all duration-300 hover:bg-white hover:bg-opacity-10 rounded-lg backdrop-blur-md"
+                >
+                  Login
+                </button>
+                <button
+                  onClick={() => navigate('/register')}
+                  className="px-6 py-2 bg-gradient-to-r from-purple-600 to-purple-700 text-white text-sm font-bold rounded-xl shadow-lg hover:from-purple-700 hover:to-purple-800 transition-all duration-300 hover:scale-105 transform backdrop-blur-md"
+                >
+                  Register Team
+                </button>
+              </>
+            )}
           </div>
 
           {/* Mobile Menu Button */}
@@ -56,34 +103,75 @@ const Navbar = () => {
         {isMobileMenuOpen && (
           <div className="md:hidden mt-4 py-4 bg-white bg-opacity-10 backdrop-blur-md rounded-2xl border border-white border-opacity-20 shadow-xl">
             <div className="flex flex-col space-y-4 px-6">
-              <button
-                onClick={() => {
-                  navigate('/login');
-                  setIsMobileMenuOpen(false);
-                }}
-                className="w-full text-left px-6 py-4 text-lg font-semibold text-gray-300 hover:text-white hover:bg-white hover:bg-opacity-10 rounded-xl transition-all duration-300"
-              >
-                <div className="flex items-center">
-                  <svg className="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1" />
-                  </svg>
-                  Login
-                </div>
-              </button>
-              <button
-                onClick={() => {
-                  navigate('/register');
-                  setIsMobileMenuOpen(false);
-                }}
-                className="w-full text-left px-6 py-4 text-lg font-bold text-white bg-gradient-to-r from-purple-600 to-purple-700 rounded-xl shadow-lg hover:from-purple-700 hover:to-purple-800 transition-all duration-300"
-              >
-                <div className="flex items-center">
-                  <svg className="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
-                  </svg>
-                  Register Team
-                </div>
-              </button>
+              {isLoggedIn ? (
+                <>
+                  <div className="px-6 py-2 text-sm text-gray-300 border-b border-white border-opacity-20">
+                    Welcome, {teamData?.teamName || 'Team'}!
+                  </div>
+                  {location.pathname !== '/team' && (
+                    <button
+                      onClick={() => {
+                        navigate('/team');
+                        setIsMobileMenuOpen(false);
+                      }}
+                      className="w-full text-left px-6 py-4 text-lg font-semibold text-gray-300 hover:text-white hover:bg-white hover:bg-opacity-10 rounded-xl transition-all duration-300"
+                    >
+                      <div className="flex items-center">
+                        <svg className="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2H5a2 2 0 00-2-2z" />
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 5a2 2 0 012-2h4a2 2 0 012 2v6H8V5z" />
+                        </svg>
+                        Dashboard
+                      </div>
+                    </button>
+                  )}
+                  <button
+                    onClick={() => {
+                      handleLogout();
+                      setIsMobileMenuOpen(false);
+                    }}
+                    className="w-full text-left px-6 py-4 text-lg font-semibold text-red-300 hover:text-red-200 hover:bg-red-500 hover:bg-opacity-20 rounded-xl transition-all duration-300"
+                  >
+                    <div className="flex items-center">
+                      <svg className="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4 4m0 0l-4 4m4-4H7m13 0v-2a2 2 0 00-2-2H5a2 2 0 00-2 2v2" />
+                      </svg>
+                      Logout
+                    </div>
+                  </button>
+                </>
+              ) : (
+                <>
+                  <button
+                    onClick={() => {
+                      navigate('/login');
+                      setIsMobileMenuOpen(false);
+                    }}
+                    className="w-full text-left px-6 py-4 text-lg font-semibold text-gray-300 hover:text-white hover:bg-white hover:bg-opacity-10 rounded-xl transition-all duration-300"
+                  >
+                    <div className="flex items-center">
+                      <svg className="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1" />
+                      </svg>
+                      Login
+                    </div>
+                  </button>
+                  <button
+                    onClick={() => {
+                      navigate('/register');
+                      setIsMobileMenuOpen(false);
+                    }}
+                    className="w-full text-left px-6 py-4 text-lg font-bold text-white bg-gradient-to-r from-purple-600 to-purple-700 rounded-xl shadow-lg hover:from-purple-700 hover:to-purple-800 transition-all duration-300"
+                  >
+                    <div className="flex items-center">
+                      <svg className="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+                      </svg>
+                      Register Team
+                    </div>
+                  </button>
+                </>
+              )}
             </div>
           </div>
         )}

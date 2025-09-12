@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import competitionService from '../services/competitionService';
 
-const CodeVerification = ({ onCodeVerified, onCancel }) => {
+const CodeVerification = ({ onCodeVerified, onCancel, roundNumber }) => {
     const [code, setCode] = useState('');
     const [error, setError] = useState('');
     const [isVerifying, setIsVerifying] = useState(false);
@@ -12,13 +12,8 @@ const CodeVerification = ({ onCodeVerified, onCancel }) => {
         setIsVerifying(true);
 
         try {
-            const response = await competitionService.verifyRound3Code(code);
-            if (response.success) {
-                onCodeVerified();
-            } else {
-                setError(response.message || 'Invalid code. Please try again.');
-                setCode('');
-            }
+            // Call the onCodeVerified function with the entered code
+            onCodeVerified(code);
         } catch (error) {
             console.error('Code verification error:', error);
             setError(error.message || 'Failed to verify code. Please try again.');
@@ -37,9 +32,9 @@ const CodeVerification = ({ onCodeVerified, onCancel }) => {
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
                         </svg>
                     </div>
-                    <h2 className="text-2xl font-bold text-white mb-2">Round 3 Access Code</h2>
+                    <h2 className="text-2xl font-bold text-white mb-2">Round {roundNumber} Access Code</h2>
                     <p className="text-gray-300">
-                        Enter the access code to start Round 3: CODE RUSH
+                        Enter the access code to start Round {roundNumber}
                     </p>
                 </div>
 
@@ -98,7 +93,7 @@ const CodeVerification = ({ onCodeVerified, onCancel }) => {
 
                 <div className="mt-6 text-center">
                     <p className="text-xs text-gray-400">
-                        🔒 This code is required to access Round 3
+                        🔒 This code is required to access Round {roundNumber}
                     </p>
                 </div>
             </div>
