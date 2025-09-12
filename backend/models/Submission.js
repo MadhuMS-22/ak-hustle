@@ -9,7 +9,7 @@ const submissionSchema = new mongoose.Schema({
     round2Team: {
         type: mongoose.Schema.Types.ObjectId,
         ref: 'Round2Team',
-        required: true
+        required: false
     },
     questionNumber: {
         type: String,

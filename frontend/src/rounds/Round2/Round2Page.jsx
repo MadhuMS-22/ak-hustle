@@ -9,7 +9,6 @@ import Trace from "./components/Trace";
 import Program from "./components/Program";
 import QuestionSidebar from "./components/QuestionSidebar";
 import GlobalTimer from "./components/GlobalTimer";
-import ChallengeSelection from "./components/ChallengeSelection";
 
 const Round2Page = () => {
     const navigate = useNavigate();
@@ -35,8 +34,9 @@ const Round2Page = () => {
         }
 
         // Get team data from localStorage
-        const teamData = authService.getTeamData();
-        if (teamData) {
+        const storedTeam = localStorage.getItem('hustle_team');
+        if (storedTeam) {
+            const teamData = JSON.parse(storedTeam);
             setTeamId(teamData._id);
             setTeamName(teamData.teamName);
             setQuizStartTime(new Date());
@@ -63,9 +63,9 @@ const Round2Page = () => {
         try {
             setIsLoading(true);
             const response = await apiService.get(`/quiz/team/${teamId}/progress`);
-            if (response.data && response.data.team) {
-                setTeamProgress(response.data.team);
-                setIsQuizCompleted(response.data.team.isQuizCompleted || false);
+            if (response && response.team) {
+                setTeamProgress(response.team);
+                setIsQuizCompleted(response.team.isQuizCompleted || false);
             }
         } catch (error) {
             console.error('Error loading team progress:', error);
@@ -77,13 +77,14 @@ const Round2Page = () => {
     const handleAptSubmit = async (selected) => {
         try {
             console.log('Submitting aptitude answer:', { teamId, currentQuestion, selected });
+            console.log('Request payload:', { teamId, step: currentQuestion, selected });
             const response = await apiService.post("/quiz/apt/answer", { teamId, step: currentQuestion, selected });
-            console.log('Aptitude response:', response.data);
+            console.log('Aptitude response:', response);
 
             // Reload team progress to get updated state
             await loadTeamProgress(teamId);
 
-            if (response.data.correct) {
+            if (response.correct) {
                 setCompletedAptitudeQuestions(prev => [...prev, currentQuestion]);
                 console.log('Answer correct, marking question as completed');
 
@@ -94,8 +95,8 @@ const Round2Page = () => {
                     setCurrentChallenge(nextChallenge);
                 }
             } else {
-                console.log('Answer incorrect, attempts left:', response.data.attemptsLeft);
-                if (response.data.attemptsLeft === 0) {
+                console.log('Answer incorrect, attempts left:', response.attemptsLeft);
+                if (response.attemptsLeft === 0) {
                     // Automatically move to the unlocked challenge even if failed
                     const challengeMap = { 0: 'debug', 1: 'trace', 2: 'program' };
                     const nextChallenge = challengeMap[currentQuestion];
@@ -107,7 +108,8 @@ const Round2Page = () => {
         } catch (error) {
             console.error('Error submitting aptitude answer:', error);
             console.error('Error details:', error.response?.data);
-            alert(`Error submitting answer: ${error.response?.data?.error || error.message}`);
+            console.error('Full error object:', error);
+            alert(`Error submitting answer: ${error.message}`);
         }
     };
 
@@ -121,13 +123,8 @@ const Round2Page = () => {
             setCompletedChallenges(prev => [...prev, currentChallenge]);
             setCurrentChallenge(null);
 
-            if (response.data.isQuizCompleted) {
+            if (response.isQuizCompleted) {
                 setIsQuizCompleted(true);
-                // Update team status to round2_completed
-                await apiService.put(`/competition/status`, {
-                    competitionStatus: 'round2_completed',
-                    scores: { round2: response.data.score || 85 }
-                });
             } else {
                 // Automatically move to the next aptitude question
                 const challengeToAptitudeMap = { 'debug': 1, 'trace': 2, 'program': 3 };
@@ -171,53 +168,12 @@ const Round2Page = () => {
         }
     };
 
-    const handleBackToTeam = () => {
-        navigate('/team');
-    };
-
     if (isLoading) {
         return (
             <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 flex items-center justify-center">
-                <div className="text-center">
+                <div className="text-center text-white">
                     <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-cyan-400 mx-auto mb-4"></div>
-                    <p className="text-white text-lg">Loading Round 2...</p>
-                </div>
-            </div>
-        );
-    }
-
-    if (!teamId) {
-        return (
-            <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 flex items-center justify-center p-4">
-                <div className="bg-slate-800 rounded-2xl shadow-2xl p-8 w-full max-w-2xl border border-slate-700">
-                    <div className="text-center mb-8">
-                        <h1 className="text-4xl font-bold text-cyan-400 mb-2">
-                            Round 2 - Code Challenge
-                        </h1>
-                        <p className="text-lg text-slate-300 mb-4">
-                            Complete 5 C programming puzzles. Each question has a 5-minute timer.
-                        </p>
-                        <div className="w-24 h-1 bg-cyan-400 mx-auto rounded-full"></div>
-                    </div>
-
-                    <div className="bg-slate-700 rounded-xl p-6 mb-6">
-                        <h2 className="text-xl font-bold text-white mb-4">Game Rules:</h2>
-                        <ul className="text-slate-300 space-y-2">
-                            <li>• Complete 5 different C programming puzzles</li>
-                            <li>• Each question has a 5-minute time limit</li>
-                            <li>• Select the correct code blocks to complete each program</li>
-                            <li>• Your progress and answers will be saved automatically</li>
-                        </ul>
-                    </div>
-
-                    <div className="flex gap-4">
-                        <button
-                            onClick={handleBackToTeam}
-                            className="flex-1 bg-purple-600 hover:bg-purple-700 text-white font-bold py-3 px-6 rounded-xl transition-all transform hover:scale-105 shadow-lg"
-                        >
-                            Back to Team Page
-                        </button>
-                    </div>
+                    Loading Round 2...
                 </div>
             </div>
         );
@@ -229,7 +185,7 @@ const Round2Page = () => {
                 <div className="mb-6">
                     <h3 className="text-lg font-bold text-cyan-400 mb-2">Team: {teamName}</h3>
                     <div className="text-sm text-slate-400">
-                        Progress: {teamProgress?.completedQuestions ? Object.values(teamProgress.completedQuestions).filter(Boolean).length : 0}/6 Questions
+                        Progress: {teamProgress ? Object.values(teamProgress.completedQuestions).filter(Boolean).length : 0}/6 Questions
                     </div>
                 </div>
 
@@ -247,12 +203,12 @@ const Round2Page = () => {
                         const aptitudeKey = `q${pair.aptitude + 1}`;
                         const challengeKey = `q${pair.aptitude + 4}`;
 
-                        const aptitudeCompleted = teamProgress?.completedQuestions?.[aptitudeKey] || false;
-                        const challengeCompleted = teamProgress?.completedQuestions?.[challengeKey] || false;
+                        const aptitudeCompleted = teamProgress ? teamProgress.completedQuestions[aptitudeKey] : false;
+                        const challengeCompleted = teamProgress ? teamProgress.completedQuestions[challengeKey] : false;
 
                         // Sequential unlocking logic
-                        const aptitudeUnlocked = teamProgress?.unlockedQuestions?.[aptitudeKey] || (pair.aptitude === 0);
-                        const challengeUnlocked = teamProgress?.unlockedQuestions?.[challengeKey] || false;
+                        const aptitudeUnlocked = teamProgress ? teamProgress.unlockedQuestions[aptitudeKey] : (pair.aptitude === 0);
+                        const challengeUnlocked = teamProgress ? teamProgress.unlockedQuestions[challengeKey] : false;
 
                         const isCurrentAptitude = currentQuestion === pair.aptitude && !aptitudeCompleted;
                         const isCurrentChallenge = currentChallenge === pair.challenge;
@@ -329,15 +285,6 @@ const Round2Page = () => {
                         );
                     })}
                 </div>
-
-                <div className="mt-6">
-                    <button
-                        onClick={handleBackToTeam}
-                        className="w-full bg-purple-600 hover:bg-purple-700 text-white font-bold py-2 px-4 rounded-lg transition-all"
-                    >
-                        Back to Team Page
-                    </button>
-                </div>
             </div>
 
             <div className="flex-1 overflow-y-auto">
@@ -357,7 +304,7 @@ const Round2Page = () => {
                                 Round 2 Completed!
                             </h2>
                             <p className="text-xl text-slate-300 mb-8">
-                                Congratulations! You have successfully completed Round 2.
+                                Congratulations! You have successfully completed all challenges.
                             </p>
                             <div className="bg-slate-800 border border-slate-700 rounded-2xl p-8 max-w-md mx-auto shadow-2xl">
                                 <p className="text-slate-300 text-lg mb-4">
@@ -370,8 +317,8 @@ const Round2Page = () => {
                                     Your responses have been submitted and recorded.
                                 </div>
                                 <button
-                                    onClick={handleBackToTeam}
-                                    className="mt-6 bg-purple-600 hover:bg-purple-700 text-white font-bold py-3 px-6 rounded-xl transition-all"
+                                    onClick={() => navigate('/team')}
+                                    className="mt-6 bg-cyan-600 hover:bg-cyan-700 text-white font-bold py-2 px-4 rounded-lg transition-all transform hover:scale-105"
                                 >
                                     Back to Team Page
                                 </button>

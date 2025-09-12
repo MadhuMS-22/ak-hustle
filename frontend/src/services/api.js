@@ -44,6 +44,8 @@ class ApiService {
             ...options,
         };
 
+        // console.log('API Request:', { url, config });
+
         try {
             const response = await fetch(url, config);
 
@@ -56,6 +58,7 @@ class ApiService {
             }
 
             const data = await response.json();
+            // console.log('API Response:', { status: response.status, data });
 
             if (!response.ok) {
                 // Include validation errors in the error message

@@ -12,7 +12,7 @@ const Aptitude = ({ questionStep, onSubmit, teamProgress }) => {
             try {
                 setLoading(true);
                 const response = await apiService.get(`/quiz/apt/${questionStep}`);
-                setQuestion(response.data);
+                setQuestion(response);
                 setSelected(null);
                 setLoading(false);
             } catch (error) {
@@ -32,14 +32,18 @@ const Aptitude = ({ questionStep, onSubmit, teamProgress }) => {
         if (selected !== null && !submitting) {
             setSubmitting(true);
             try {
+                console.log('Submitting answer, selected:', selected);
                 await onSubmit(selected);
+                console.log('Answer submitted successfully');
             } catch (error) {
                 console.error('Error submitting answer:', error);
+                alert(`Error: ${error.message}`);
             } finally {
                 setSubmitting(false);
             }
         }
     };
+
 
     if (loading) {
         return (
@@ -75,7 +79,7 @@ const Aptitude = ({ questionStep, onSubmit, teamProgress }) => {
                         {teamProgress && (
                             <div className="bg-yellow-600/20 border border-yellow-600 rounded-lg p-3 max-w-md mx-auto">
                                 <p className="text-yellow-400 text-sm font-semibold">
-                                    You have {2 - teamProgress.aptitudeAttempts[`q${questionStep + 1}`]} out of 2 attempts remaining
+                                    You have {2 - (teamProgress.aptitudeAttempts?.[`q${questionStep + 1}`] || 0)} out of 2 attempts remaining
                                 </p>
                             </div>
                         )}
