@@ -780,18 +780,6 @@ const Round3Page = () => {
               >
                 Start Quiz
               </button>
-              <button
-                onClick={() => navigate('/result')}
-                className="bg-gray-600 hover:bg-gray-700 text-white font-bold py-3 px-6 rounded-full transition duration-300 transform hover:scale-105"
-              >
-                Back to Results
-              </button>
-              <button
-                onClick={() => setIsViewingAdmin(true)}
-                className="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3 px-6 rounded-full transition duration-300 transform hover:scale-105"
-              >
-                View Admin Page
-              </button>
             </div>
           </div>
         ) : !quizComplete ? (
@@ -893,22 +881,10 @@ const Round3Page = () => {
               </div>
               <div className="flex justify-center gap-4">
                 <button
-                  onClick={handleStartQuiz}
+                  onClick={() => navigate('/team')}
                   className="bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-6 rounded-full transition duration-300 transform hover:scale-105"
                 >
-                  Take Quiz Again
-                </button>
-                <button
-                  onClick={() => navigate('/result')}
-                  className="bg-gray-600 hover:bg-gray-700 text-white font-bold py-3 px-6 rounded-full transition duration-300 transform hover:scale-105"
-                >
-                  Back to Results
-                </button>
-                <button
-                  onClick={() => setIsViewingAdmin(true)}
-                  className="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3 px-6 rounded-full transition duration-300 transform hover:scale-105"
-                >
-                  View Admin Dashboard
+                  Go Back to Home Page
                 </button>
               </div>
             </div>

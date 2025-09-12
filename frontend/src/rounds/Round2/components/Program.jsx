@@ -3,7 +3,7 @@ import apiService from '../../../services/api';
 
 const Program = ({ onSubmit, teamId }) => {
     const [code, setCode] = useState('');
-    const [timeLeft, setTimeLeft] = useState(300); // 5 minutes
+    const [timeLeft, setTimeLeft] = useState(1500); // 25 minutes
     const [isRunning, setIsRunning] = useState(false);
     const [submitting, setSubmitting] = useState(false);
     const autoSaveTimeoutRef = useRef(null);
@@ -25,7 +25,7 @@ Output: 0 1 1 2 3`;
         let interval = null;
 
         // Auto-start timer when component mounts
-        if (!isRunning && timeLeft === 300) {
+        if (!isRunning && timeLeft === 1500) {
             setIsRunning(true);
         }
 
@@ -44,7 +44,7 @@ Output: 0 1 1 2 3`;
     const autoSave = async () => {
         if (code.trim() && teamId) {
             try {
-                const timeTaken = Math.max(0, 300 - timeLeft);
+                const timeTaken = Math.max(0, 1500 - timeLeft);
                 await apiService.post('/quiz/code/autosave', {
                     teamId,
                     challengeType: 'program',
@@ -90,7 +90,7 @@ Output: 0 1 1 2 3`;
         if (!code.trim() || submitting) return;
 
         setSubmitting(true);
-        const timeTaken = Math.max(0, 300 - timeLeft); // Ensure it's never negative or NaN
+        const timeTaken = Math.max(0, 1500 - timeLeft); // Ensure it's never negative or NaN
 
         try {
             await onSubmit(code, timeTaken);
@@ -121,7 +121,7 @@ Output: 0 1 1 2 3`;
                                 }`}>
                                 Time Left: {formatTime(timeLeft)}
                             </div>
-                            {!isRunning && timeLeft === 300 && (
+                            {!isRunning && timeLeft === 1500 && (
                                 <div className="mt-3 text-orange-400 text-sm">
                                     Timer starting automatically...
                                 </div>
