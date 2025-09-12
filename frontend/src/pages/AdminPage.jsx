@@ -1070,34 +1070,9 @@ const AdminPage = () => {
                                 <span className="text-purple-400 font-semibold">Question Order:</span>
                                 <span className="text-white font-bold">{selectedTeam.round3QuestionOrderName || 'Unknown'}</span>
                             </div>
-                            <div className="inline-flex items-center gap-2 bg-blue-900/30 px-4 py-2 rounded-full">
-                                <span className="text-blue-400 font-semibold">Programming Language:</span>
-                                <span className="text-white font-bold">{selectedTeam.round3Program || 'Unknown'}</span>
-                            </div>
                         </div>
 
                         {/* Overall Program Summary */}
-                        <div className="mb-6">
-                            <h2 className="text-2xl font-bold mb-4 text-blue-400">Complete Program Summary</h2>
-                            <div className="bg-gray-800 rounded-lg p-6 border border-gray-600">
-                                <div className="flex items-center gap-2 mb-3">
-                                    <span className="text-xs text-gray-400 font-semibold">FULL PROGRAM CODE:</span>
-                                    <div className="flex-1 h-px bg-gray-600"></div>
-                                </div>
-                                <pre className="text-sm font-mono overflow-x-auto whitespace-pre-wrap leading-relaxed text-gray-200 bg-gray-900 p-4 rounded">
-                                    {(() => {
-                                        if (selectedTeam.round3QuestionResults && selectedTeam.round3QuestionResults.length > 0) {
-                                            const sortedResults = selectedTeam.round3QuestionResults
-                                                .sort((a, b) => a.questionIndex - b.questionIndex || a.blockIndex - b.blockIndex);
-                                            const programCode = sortedResults.map(result => result.selectedAnswer).join('\n');
-                                            return programCode;
-                                        } else {
-                                            return 'No program data available';
-                                        }
-                                    })()}
-                                </pre>
-                            </div>
-                        </div>
 
                         {/* Program by Question */}
                         <div className="mb-6">
@@ -1193,17 +1168,6 @@ const AdminPage = () => {
                                                             ))}
                                                         </div>
 
-                                                        {/* Complete Program Summary */}
-                                                        <div className="mt-4 p-3 bg-gray-800 rounded border-t border-gray-600">
-                                                            <div className="text-xs text-gray-400 font-semibold mb-2">COMPLETE PROGRAM:</div>
-                                                            <pre className="text-sm font-mono overflow-x-auto whitespace-pre-wrap leading-relaxed text-gray-200">
-                                                                {(() => {
-                                                                    const sortedResults = questionResults.sort((a, b) => a.blockIndex - b.blockIndex);
-                                                                    const programCode = sortedResults.map(result => result.selectedAnswer).join('\n');
-                                                                    return programCode;
-                                                                })()}
-                                                            </pre>
-                                                        </div>
                                                     </div>
                                                 </div>
                                             );
@@ -1217,25 +1181,6 @@ const AdminPage = () => {
                             </div>
                         </div>
 
-                        {/* Individual Question Results */}
-                        <div className="mb-6">
-                            <h2 className="text-2xl font-bold mb-4 text-blue-400">Individual Question Results</h2>
-                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                                {selectedTeam.round3IndividualScores && selectedTeam.round3IndividualScores.length > 0 ? (
-                                    selectedTeam.round3IndividualScores.map((qScore, index) => (
-                                        <div key={index} className="bg-gray-700 p-4 rounded-lg">
-                                            <h3 className="font-bold text-indigo-400">Question {(qScore.questionIndex || index) + 1}</h3>
-                                            <p className="text-green-400">Score: {qScore.score || 0}</p>
-                                            <p className="text-yellow-400">Time: {qScore.timeTaken || 0}s</p>
-                                        </div>
-                                    ))
-                                ) : (
-                                    <div className="col-span-full text-center text-gray-400 py-4">
-                                        No individual question results available
-                                    </div>
-                                )}
-                            </div>
-                        </div>
 
                         <div className="flex justify-center gap-4">
                             <button
@@ -1290,28 +1235,6 @@ const AdminPage = () => {
                     <p className="text-lg text-gray-300">Manage Round 3 results and scores</p>
                 </div>
 
-                {/* Round 3 Statistics */}
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-                    <div className="bg-gradient-to-br from-blue-600/20 to-blue-800/20 backdrop-blur-sm border border-blue-400/30 rounded-xl p-6 shadow-xl">
-                        <h3 className="text-lg font-semibold text-white mb-2">Total Submissions</h3>
-                        <p className="text-4xl font-bold text-white">{round3Teams.length}</p>
-                    </div>
-                    <div className="bg-gradient-to-br from-green-600/20 to-green-800/20 backdrop-blur-sm border border-green-400/30 rounded-xl p-6 shadow-xl">
-                        <h3 className="text-lg font-semibold text-white mb-2">Average Score</h3>
-                        <p className="text-4xl font-bold text-white">
-                            {round3Teams.length > 0
-                                ? Math.round(round3Teams.reduce((sum, team) => sum + (team.round3Score || 0), 0) / round3Teams.length)
-                                : 0
-                            }
-                        </p>
-                    </div>
-                    <div className="bg-gradient-to-br from-purple-600/20 to-purple-800/20 backdrop-blur-sm border border-purple-400/30 rounded-xl p-6 shadow-xl">
-                        <h3 className="text-lg font-semibold text-white mb-2">Highest Score</h3>
-                        <p className="text-4xl font-bold text-white">
-                            {round3Teams.length > 0 ? Math.max(...round3Teams.map(team => team.round3Score || 0)) : 0}
-                        </p>
-                    </div>
-                </div>
 
                 {/* Round 3 Results */}
                 {round3Teams.length === 0 ? (

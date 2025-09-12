@@ -123,6 +123,106 @@ const Round2AdminDashboard = () => {
         }
     };
 
+    // Download team answers as PDF
+    const downloadTeamAnswers = (team, submissions) => {
+        // Ensure we only get the latest submission for each challenge type
+        const latestSubmissions = ['debug', 'trace', 'program'].map(challengeType => {
+            const challengeSubmissions = submissions.filter(sub => sub.challengeType === challengeType);
+            return challengeSubmissions.sort((a, b) => {
+                if (a.attemptNumber !== b.attemptNumber) {
+                    return b.attemptNumber - a.attemptNumber;
+                }
+                return new Date(b.createdAt) - new Date(a.createdAt);
+            })[0];
+        }).filter(Boolean);
+        try {
+            // Create a new window for PDF generation
+            const printWindow = window.open('', '_blank');
+
+            // Prepare the content
+            const content = `
+                <!DOCTYPE html>
+                <html>
+                <head>
+                    <title>${team.teamName} - Round 2 Answers</title>
+                    <style>
+                        body { font-family: Arial, sans-serif; margin: 20px; background: white; }
+                        .header { text-align: center; margin-bottom: 30px; border-bottom: 2px solid #333; padding-bottom: 20px; }
+                        .team-info { background: #f5f5f5; padding: 15px; border-radius: 8px; margin-bottom: 20px; }
+                        .question { margin-bottom: 30px; border: 1px solid #ddd; border-radius: 8px; padding: 20px; }
+                        .question-header { background: #e9ecef; padding: 10px; margin: -20px -20px 15px -20px; border-radius: 8px 8px 0 0; }
+                        .code-block { background: #f8f9fa; border: 1px solid #e9ecef; border-radius: 4px; padding: 15px; margin: 10px 0; font-family: 'Courier New', monospace; white-space: pre-wrap; }
+                        .score { font-weight: bold; color: #28a745; }
+                        .incorrect { color: #dc3545; }
+                        .correct { color: #28a745; }
+                        .meta-info { background: #f8f9fa; padding: 10px; border-radius: 4px; margin-top: 10px; font-size: 12px; color: #666; }
+                    </style>
+                </head>
+                <body>
+                    <div class="header">
+                        <h1>Round 2 - Team Answers Report</h1>
+                        <h2>${team.teamName}</h2>
+                    </div>
+                    
+                    <div class="team-info">
+                        <h3>Team Information</h3>
+                        <p><strong>Team Name:</strong> ${team.teamName}</p>
+                        <p><strong>Leader:</strong> ${getLeaderName(team)}</p>
+                        <p><strong>Total Score:</strong> <span class="score">${team.totalScore}</span></p>
+                        <p><strong>Total Time:</strong> ${formatTime(team.totalTimeTaken)}</p>
+                        <p><strong>Status:</strong> ${team.isQuizCompleted ? 'Completed' : 'In Progress'}</p>
+                    </div>
+                    
+                    <h3>Main Challenge Answers (3 Questions)</h3>
+                    
+                    ${latestSubmissions.map((submission, index) => `
+                        <div class="question">
+                            <div class="question-header">
+                                <h4>Question ${index + 1}: ${submission.challengeType === 'debug' ? 'Debug' : submission.challengeType === 'trace' ? 'Output (Trace)' : 'Program'} Challenge</h4>
+                                <p>Score: <span class="score">${submission.score}</span> | 
+                                   Status: <span class="${submission.isCorrect ? 'correct' : 'incorrect'}">${submission.isCorrect ? 'Correct' : 'Incorrect'}</span></p>
+                            </div>
+                            
+                            <div>
+                                <h5>Original Question:</h5>
+                                <div class="code-block">${submission.originalQuestion || 'No question data available'}</div>
+                            </div>
+                            
+                            <div>
+                                <h5>Team's Solution:</h5>
+                                <div class="code-block">${submission.userSolution || 'No solution provided'}</div>
+                            </div>
+                            
+                            <div class="meta-info">
+                                <p>Time Taken: ${submission.timeTaken}s | Attempt: #${submission.attemptNumber} | Submitted: ${new Date(submission.createdAt).toLocaleString()}</p>
+                            </div>
+                        </div>
+                    `).join('')}
+                    
+                    <div style="margin-top: 40px; text-align: center; color: #666; font-size: 12px;">
+                        <p>Generated on ${new Date().toLocaleString()}</p>
+                    </div>
+                </body>
+                </html>
+            `;
+
+            printWindow.document.write(content);
+            printWindow.document.close();
+
+            // Wait for content to load, then print
+            printWindow.onload = () => {
+                setTimeout(() => {
+                    printWindow.print();
+                    printWindow.close();
+                }, 500);
+            };
+
+        } catch (error) {
+            console.error('Error generating PDF:', error);
+            alert('Error generating PDF. Please try again.');
+        }
+    };
+
 
     if (loading) {
         return (
@@ -178,9 +278,17 @@ const Round2AdminDashboard = () => {
                         {sortedTeams.map((team, index) => {
                             const isExpanded = expandedTeams.has(team._id);
                             const teamSubmissions = team.submissions || [];
-                            const mainSubmissions = teamSubmissions.filter(sub =>
-                                ['debug', 'trace', 'program'].includes(sub.challengeType)
-                            );
+                            // Get only the latest submission for each of the 3 main challenge types
+                            const mainSubmissions = ['debug', 'trace', 'program'].map(challengeType => {
+                                const submissions = teamSubmissions.filter(sub => sub.challengeType === challengeType);
+                                // Return the latest submission (highest attempt number or most recent)
+                                return submissions.sort((a, b) => {
+                                    if (a.attemptNumber !== b.attemptNumber) {
+                                        return b.attemptNumber - a.attemptNumber; // Higher attempt number first
+                                    }
+                                    return new Date(b.createdAt) - new Date(a.createdAt); // Most recent first
+                                })[0];
+                            }).filter(Boolean); // Remove undefined entries
 
                             return (
                                 <div key={team._id} className="space-y-2">
@@ -235,52 +343,74 @@ const Round2AdminDashboard = () => {
                                     {/* Expanded Answers Section */}
                                     {isExpanded && (
                                         <div className="bg-white/5 rounded-lg p-4 ml-4 border border-white/10">
-                                            <h4 className="text-white font-semibold text-lg mb-4">Main Challenge Answers:</h4>
+                                            <div className="flex justify-between items-center mb-4">
+                                                <div>
+                                                    <h4 className="text-white font-semibold text-lg">Team's 3 Main Answers:</h4>
+                                                    <p className="text-gray-400 text-sm">Debug, Output (Trace), and Program challenges</p>
+                                                </div>
+                                                <button
+                                                    onClick={() => downloadTeamAnswers(team, mainSubmissions)}
+                                                    className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg transition-colors font-medium flex items-center gap-2"
+                                                >
+                                                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                                                    </svg>
+                                                    Download Answers
+                                                </button>
+                                            </div>
                                             {mainSubmissions.length > 0 ? (
                                                 <div className="space-y-4">
-                                                    {mainSubmissions.map((submission, subIndex) => (
-                                                        <div key={submission._id} className="bg-white/10 rounded-lg p-4">
-                                                            <div className="flex justify-between items-start mb-3">
-                                                                <h5 className="text-white font-semibold text-lg">
-                                                                    Question {subIndex + 1}: {submission.challengeType.charAt(0).toUpperCase() + submission.challengeType.slice(1)} Challenge
-                                                                </h5>
-                                                                <div className="text-right">
-                                                                    <div className={`text-lg font-bold ${getScoreColor(submission.score)}`}>
-                                                                        Score: {submission.score}
+                                                    {mainSubmissions.map((submission, subIndex) => {
+                                                        const challengeOrder = ['debug', 'trace', 'program'];
+                                                        const challengeNames = {
+                                                            'debug': 'Debug Challenge',
+                                                            'trace': 'Output (Trace) Challenge',
+                                                            'program': 'Program Challenge'
+                                                        };
+                                                        return (
+                                                            <div key={submission._id} className="bg-white/10 rounded-lg p-4">
+                                                                <div className="flex justify-between items-start mb-3">
+                                                                    <h5 className="text-white font-semibold text-lg">
+                                                                        {subIndex + 1}. {challengeNames[submission.challengeType] || submission.challengeType.charAt(0).toUpperCase() + submission.challengeType.slice(1) + ' Challenge'}
+                                                                    </h5>
+                                                                    <div className="text-right">
+                                                                        <div className={`text-lg font-bold ${getScoreColor(submission.score)}`}>
+                                                                            Score: {submission.score}
+                                                                        </div>
+                                                                        <div className={`text-sm ${submission.isCorrect ? 'text-green-400' : 'text-red-400'}`}>
+                                                                            {submission.isCorrect ? 'Correct' : 'Incorrect'}
+                                                                        </div>
                                                                     </div>
-                                                                    <div className={`text-sm ${submission.isCorrect ? 'text-green-400' : 'text-red-400'}`}>
-                                                                        {submission.isCorrect ? 'Correct' : 'Incorrect'}
+                                                                </div>
+
+                                                                <div className="space-y-3">
+                                                                    <div>
+                                                                        <label className="text-gray-400 text-sm font-medium">Original Question:</label>
+                                                                        <div className="bg-gray-800 rounded-lg p-3 mt-1">
+                                                                            <pre className="text-gray-300 whitespace-pre-wrap text-sm">
+                                                                                {submission.originalQuestion}
+                                                                            </pre>
+                                                                        </div>
+                                                                    </div>
+
+                                                                    <div>
+                                                                        <label className="text-gray-400 text-sm font-medium">Team's Solution:</label>
+                                                                        <div className="bg-gray-800 rounded-lg p-3 mt-1">
+                                                                            <pre className="text-gray-300 whitespace-pre-wrap text-sm">
+                                                                                {submission.userSolution}
+                                                                            </pre>
+                                                                        </div>
+                                                                    </div>
+
+                                                                    <div className="flex justify-between text-sm text-gray-400 bg-white/5 rounded-lg p-2">
+                                                                        <span>Time Taken: {submission.timeTaken}s</span>
+                                                                        <span>Attempt: #{submission.attemptNumber}</span>
+                                                                        <span>Submitted: {new Date(submission.createdAt).toLocaleString()}</span>
                                                                     </div>
                                                                 </div>
                                                             </div>
-
-                                                            <div className="space-y-3">
-                                                                <div>
-                                                                    <label className="text-gray-400 text-sm font-medium">Original Question:</label>
-                                                                    <div className="bg-gray-800 rounded-lg p-3 mt-1">
-                                                                        <pre className="text-gray-300 whitespace-pre-wrap text-sm">
-                                                                            {submission.originalQuestion}
-                                                                        </pre>
-                                                                    </div>
-                                                                </div>
-
-                                                                <div>
-                                                                    <label className="text-gray-400 text-sm font-medium">Team's Solution:</label>
-                                                                    <div className="bg-gray-800 rounded-lg p-3 mt-1">
-                                                                        <pre className="text-gray-300 whitespace-pre-wrap text-sm">
-                                                                            {submission.userSolution}
-                                                                        </pre>
-                                                                    </div>
-                                                                </div>
-
-                                                                <div className="flex justify-between text-sm text-gray-400 bg-white/5 rounded-lg p-2">
-                                                                    <span>Time Taken: {submission.timeTaken}s</span>
-                                                                    <span>Attempt: #{submission.attemptNumber}</span>
-                                                                    <span>Submitted: {new Date(submission.createdAt).toLocaleString()}</span>
-                                                                </div>
-                                                            </div>
-                                                        </div>
-                                                    ))}
+                                                        );
+                                                    })}
                                                 </div>
                                             ) : (
                                                 <div className="text-center py-8 text-gray-400">
