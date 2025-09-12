@@ -1,0 +1,933 @@
+{
+  "questionOrders": [
+    {
+      "orderId": 1,
+      "name": "Order A",
+      "questionIds": [
+        1,
+        2,
+        3,
+        4,
+        5
+      ]
+    },
+    {
+      "orderId": 2,
+      "name": "Order B",
+      "questionIds": [
+        2,
+        4,
+        1,
+        5,
+        3
+      ]
+    },
+    {
+      "orderId": 3,
+      "name": "Order C",
+      "questionIds": [
+        3,
+        1,
+        5,
+        2,
+        4
+      ]
+    },
+    {
+      "orderId": 4,
+      "name": "Order D",
+      "questionIds": [
+        4,
+        5,
+        2,
+        3,
+        1
+      ]
+    },
+    {
+      "orderId": 5,
+      "name": "Order E",
+      "questionIds": [
+        5,
+        3,
+        4,
+        1,
+        2
+      ]
+    }
+  ],
+  "questions": [
+    {
+      "id": 1,
+      "title": "C Program: Add Two Numbers",
+      "description": "Complete the C program to add two numbers",
+      "timeLimit": 300,
+      "codeBlocks": [
+        {
+          "isPuzzle": true,
+          "options": [
+            {
+              "code": "#include <stdio.h>",
+              "isCorrect": true
+            },
+            {
+              "code": "#include <st>",
+              "isCorrect": false
+            },
+            {
+              "code": "#include <iostream>",
+              "isCorrect": false
+            },
+            {
+              "code": "include \"stdio.h\"",
+              "isCorrect": false
+            }
+          ]
+        },
+        {
+          "isPuzzle": false,
+          "code": "int main() {"
+        },
+        {
+          "isPuzzle": true,
+          "options": [
+            {
+              "code": "int a = 5, b = 10;",
+              "isCorrect": true
+            },
+            {
+              "code": "int a; int b=10;",
+              "isCorrect": false
+            },
+            {
+              "code": "int a=5; int b=10;",
+              "isCorrect": false
+            },
+            {
+              "code": "int a=5, b=10",
+              "isCorrect": false
+            }
+          ]
+        },
+        {
+          "isPuzzle": true,
+          "options": [
+            {
+              "code": "int c;",
+              "isCorrect": true
+            },
+            {
+              "code": "c;",
+              "isCorrect": false
+            },
+            {
+              "code": "integer c;",
+              "isCorrect": false
+            },
+            {
+              "code": "declare c;",
+              "isCorrect": false
+            }
+          ]
+        },
+        {
+          "isPuzzle": true,
+          "options": [
+            {
+              "code": "c = a + b;",
+              "isCorrect": true
+            },
+            {
+              "code": "c = a + b",
+              "isCorrect": false
+            },
+            {
+              "code": "a + b = c;",
+              "isCorrect": false
+            },
+            {
+              "code": "c++ = b+a;",
+              "isCorrect": false
+            }
+          ]
+        },
+        {
+          "isPuzzle": false,
+          "code": "  printf(\"Sum: %d\\n\", c);"
+        },
+        {
+          "isPuzzle": true,
+          "options": [
+            {
+              "code": "return 0;",
+              "isCorrect": true
+            },
+            {
+              "code": "return;",
+              "isCorrect": false
+            },
+            {
+              "code": "end;",
+              "isCorrect": false
+            },
+            {
+              "code": "exit;",
+              "isCorrect": false
+            }
+          ]
+        },
+        {
+          "isPuzzle": false,
+          "code": "}"
+        }
+      ]
+    },
+    {
+      "id": 2,
+      "title": "C Program: Find Maximum of Two Numbers",
+      "description": "Complete the C program to find the maximum of two numbers",
+      "timeLimit": 300,
+      "codeBlocks": [
+        {
+          "isPuzzle": true,
+          "options": [
+            {
+              "code": "#include <stdio.h>",
+              "isCorrect": true
+            },
+            {
+              "code": "#include <math.h>",
+              "isCorrect": false
+            },
+            {
+              "code": "#include <string.h>",
+              "isCorrect": false
+            },
+            {
+              "code": "#include <stdlib.h>",
+              "isCorrect": false
+            }
+          ]
+        },
+        {
+          "isPuzzle": false,
+          "code": "int main() {"
+        },
+        {
+          "isPuzzle": true,
+          "options": [
+            {
+              "code": "int num1, num2, max;",
+              "isCorrect": true
+            },
+            {
+              "code": "int num1, num2;",
+              "isCorrect": false
+            },
+            {
+              "code": "int num1; int num2; int max;",
+              "isCorrect": false
+            },
+            {
+              "code": "int num1, num2, max",
+              "isCorrect": false
+            }
+          ]
+        },
+        {
+          "isPuzzle": true,
+          "options": [
+            {
+              "code": "printf(\"Enter two numbers: \");",
+              "isCorrect": true
+            },
+            {
+              "code": "printf(\"Enter two numbers\");",
+              "isCorrect": false
+            },
+            {
+              "code": "print(\"Enter two numbers: \");",
+              "isCorrect": false
+            },
+            {
+              "code": "printf(\"Enter two numbers: \\n\");",
+              "isCorrect": false
+            }
+          ]
+        },
+        {
+          "isPuzzle": true,
+          "options": [
+            {
+              "code": "scanf(\"%d %d\", &num1, &num2);",
+              "isCorrect": true
+            },
+            {
+              "code": "scanf(\"%d%d\", &num1, &num2);",
+              "isCorrect": false
+            },
+            {
+              "code": "scanf(\"%d %d\", num1, num2);",
+              "isCorrect": false
+            },
+            {
+              "code": "read(\"%d %d\", &num1, &num2);",
+              "isCorrect": false
+            }
+          ]
+        },
+        {
+          "isPuzzle": true,
+          "options": [
+            {
+              "code": "max = (num1 > num2) ? num1 : num2;",
+              "isCorrect": true
+            },
+            {
+              "code": "max = num1 > num2 ? num1 : num2;",
+              "isCorrect": false
+            },
+            {
+              "code": "if (num1 > num2) max = num1; else max = num2;",
+              "isCorrect": false
+            },
+            {
+              "code": "max = (num1 > num2) ? num1 : num2",
+              "isCorrect": false
+            }
+          ]
+        },
+        {
+          "isPuzzle": false,
+          "code": "  printf(\"Maximum: %d\\n\", max);"
+        },
+        {
+          "isPuzzle": true,
+          "options": [
+            {
+              "code": "return 0;",
+              "isCorrect": true
+            },
+            {
+              "code": "return;",
+              "isCorrect": false
+            },
+            {
+              "code": "end;",
+              "isCorrect": false
+            },
+            {
+              "code": "exit(0);",
+              "isCorrect": false
+            }
+          ]
+        },
+        {
+          "isPuzzle": false,
+          "code": "}"
+        }
+      ]
+    },
+    {
+      "id": 3,
+      "title": "C Program: Check Even or Odd",
+      "description": "Complete the C program to check if a number is even or odd",
+      "timeLimit": 300,
+      "codeBlocks": [
+        {
+          "isPuzzle": true,
+          "options": [
+            {
+              "code": "#include <stdio.h>",
+              "isCorrect": true
+            },
+            {
+              "code": "#include <math.h>",
+              "isCorrect": false
+            },
+            {
+              "code": "#include <conio.h>",
+              "isCorrect": false
+            },
+            {
+              "code": "#include <stdlib.h>",
+              "isCorrect": false
+            }
+          ]
+        },
+        {
+          "isPuzzle": false,
+          "code": "int main() {"
+        },
+        {
+          "isPuzzle": true,
+          "options": [
+            {
+              "code": "int number;",
+              "isCorrect": true
+            },
+            {
+              "code": "int num;",
+              "isCorrect": false
+            },
+            {
+              "code": "integer number;",
+              "isCorrect": false
+            },
+            {
+              "code": "int number",
+              "isCorrect": false
+            }
+          ]
+        },
+        {
+          "isPuzzle": true,
+          "options": [
+            {
+              "code": "printf(\"Enter a number: \");",
+              "isCorrect": true
+            },
+            {
+              "code": "printf(\"Enter number: \");",
+              "isCorrect": false
+            },
+            {
+              "code": "print(\"Enter a number: \");",
+              "isCorrect": false
+            },
+            {
+              "code": "printf(\"Enter a number\");",
+              "isCorrect": false
+            }
+          ]
+        },
+        {
+          "isPuzzle": true,
+          "options": [
+            {
+              "code": "scanf(\"%d\", &number);",
+              "isCorrect": true
+            },
+            {
+              "code": "scanf(\"%d\", number);",
+              "isCorrect": false
+            },
+            {
+              "code": "scanf(\"%i\", &number);",
+              "isCorrect": false
+            },
+            {
+              "code": "read(\"%d\", &number);",
+              "isCorrect": false
+            }
+          ]
+        },
+        {
+          "isPuzzle": true,
+          "options": [
+            {
+              "code": "if (number % 2 == 0)",
+              "isCorrect": true
+            },
+            {
+              "code": "if (number % 2 = 0)",
+              "isCorrect": false
+            },
+            {
+              "code": "if (number / 2 == 0)",
+              "isCorrect": false
+            },
+            {
+              "code": "if (number % 2 == 0",
+              "isCorrect": false
+            }
+          ]
+        },
+        {
+          "isPuzzle": false,
+          "code": "    printf(\"Even\\n\");"
+        },
+        {
+          "isPuzzle": true,
+          "options": [
+            {
+              "code": "else",
+              "isCorrect": true
+            },
+            {
+              "code": "else if",
+              "isCorrect": false
+            },
+            {
+              "code": "otherwise",
+              "isCorrect": false
+            },
+            {
+              "code": "if not",
+              "isCorrect": false
+            }
+          ]
+        },
+        {
+          "isPuzzle": false,
+          "code": "    printf(\"Odd\\n\");"
+        },
+        {
+          "isPuzzle": true,
+          "options": [
+            {
+              "code": "return 0;",
+              "isCorrect": true
+            },
+            {
+              "code": "return;",
+              "isCorrect": false
+            },
+            {
+              "code": "end;",
+              "isCorrect": false
+            },
+            {
+              "code": "exit;",
+              "isCorrect": false
+            }
+          ]
+        },
+        {
+          "isPuzzle": false,
+          "code": "}"
+        }
+      ]
+    },
+    {
+      "id": 4,
+      "title": "C Program: Calculate Factorial",
+      "description": "Complete the C program to calculate factorial of a number",
+      "timeLimit": 300,
+      "codeBlocks": [
+        {
+          "isPuzzle": true,
+          "options": [
+            {
+              "code": "#include <stdio.h>",
+              "isCorrect": true
+            },
+            {
+              "code": "#include <math.h>",
+              "isCorrect": false
+            },
+            {
+              "code": "#include <string.h>",
+              "isCorrect": false
+            },
+            {
+              "code": "#include <stdlib.h>",
+              "isCorrect": false
+            }
+          ]
+        },
+        {
+          "isPuzzle": false,
+          "code": "int main() {"
+        },
+        {
+          "isPuzzle": true,
+          "options": [
+            {
+              "code": "int n, i, fact = 1;",
+              "isCorrect": true
+            },
+            {
+              "code": "int n, i, fact;",
+              "isCorrect": false
+            },
+            {
+              "code": "int n, i, fact = 0;",
+              "isCorrect": false
+            },
+            {
+              "code": "int n, i, fact = 1",
+              "isCorrect": false
+            }
+          ]
+        },
+        {
+          "isPuzzle": true,
+          "options": [
+            {
+              "code": "printf(\"Enter a number: \");",
+              "isCorrect": true
+            },
+            {
+              "code": "printf(\"Enter number: \");",
+              "isCorrect": false
+            },
+            {
+              "code": "print(\"Enter a number: \");",
+              "isCorrect": false
+            },
+            {
+              "code": "printf(\"Enter a number\");",
+              "isCorrect": false
+            }
+          ]
+        },
+        {
+          "isPuzzle": true,
+          "options": [
+            {
+              "code": "scanf(\"%d\", &n);",
+              "isCorrect": true
+            },
+            {
+              "code": "scanf(\"%d\", n);",
+              "isCorrect": false
+            },
+            {
+              "code": "scanf(\"%i\", &n);",
+              "isCorrect": false
+            },
+            {
+              "code": "read(\"%d\", &n);",
+              "isCorrect": false
+            }
+          ]
+        },
+        {
+          "isPuzzle": true,
+          "options": [
+            {
+              "code": "for (i = 1; i <= n; i++)",
+              "isCorrect": true
+            },
+            {
+              "code": "for (i = 0; i <= n; i++)",
+              "isCorrect": false
+            },
+            {
+              "code": "for (i = 1; i < n; i++)",
+              "isCorrect": false
+            },
+            {
+              "code": "for (i = 1; i <= n; i++",
+              "isCorrect": false
+            }
+          ]
+        },
+        {
+          "isPuzzle": true,
+          "options": [
+            {
+              "code": "fact = fact * i;",
+              "isCorrect": true
+            },
+            {
+              "code": "fact *= i;",
+              "isCorrect": false
+            },
+            {
+              "code": "fact = fact + i;",
+              "isCorrect": false
+            },
+            {
+              "code": "fact = fact * i",
+              "isCorrect": false
+            }
+          ]
+        },
+        {
+          "isPuzzle": false,
+          "code": "  printf(\"Factorial: %d\\n\", fact);"
+        },
+        {
+          "isPuzzle": true,
+          "options": [
+            {
+              "code": "return 0;",
+              "isCorrect": true
+            },
+            {
+              "code": "return;",
+              "isCorrect": false
+            },
+            {
+              "code": "end;",
+              "isCorrect": false
+            },
+            {
+              "code": "exit;",
+              "isCorrect": false
+            }
+          ]
+        },
+        {
+          "isPuzzle": false,
+          "code": "}"
+        }
+      ]
+    },
+    {
+      "id": 5,
+      "title": "C Program: Check Prime Number",
+      "description": "Complete the C program to check if a number is prime",
+      "timeLimit": 300,
+      "codeBlocks": [
+        {
+          "isPuzzle": true,
+          "options": [
+            {
+              "code": "#include <stdio.h>",
+              "isCorrect": true
+            },
+            {
+              "code": "#include <math.h>",
+              "isCorrect": false
+            },
+            {
+              "code": "#include <string.h>",
+              "isCorrect": false
+            },
+            {
+              "code": "#include <stdlib.h>",
+              "isCorrect": false
+            }
+          ]
+        },
+        {
+          "isPuzzle": false,
+          "code": "int main() {"
+        },
+        {
+          "isPuzzle": true,
+          "options": [
+            {
+              "code": "int n, i, flag = 0;",
+              "isCorrect": true
+            },
+            {
+              "code": "int n, i, flag;",
+              "isCorrect": false
+            },
+            {
+              "code": "int n, i, flag = 1;",
+              "isCorrect": false
+            },
+            {
+              "code": "int n, i, flag = 0",
+              "isCorrect": false
+            }
+          ]
+        },
+        {
+          "isPuzzle": true,
+          "options": [
+            {
+              "code": "printf(\"Enter a number: \");",
+              "isCorrect": true
+            },
+            {
+              "code": "printf(\"Enter number: \");",
+              "isCorrect": false
+            },
+            {
+              "code": "print(\"Enter a number: \");",
+              "isCorrect": false
+            },
+            {
+              "code": "printf(\"Enter a number\");",
+              "isCorrect": false
+            }
+          ]
+        },
+        {
+          "isPuzzle": true,
+          "options": [
+            {
+              "code": "scanf(\"%d\", &n);",
+              "isCorrect": true
+            },
+            {
+              "code": "scanf(\"%d\", n);",
+              "isCorrect": false
+            },
+            {
+              "code": "scanf(\"%i\", &n);",
+              "isCorrect": false
+            },
+            {
+              "code": "read(\"%d\", &n);",
+              "isCorrect": false
+            }
+          ]
+        },
+        {
+          "isPuzzle": true,
+          "options": [
+            {
+              "code": "for (i = 2; i <= n/2; i++)",
+              "isCorrect": true
+            },
+            {
+              "code": "for (i = 1; i <= n/2; i++)",
+              "isCorrect": false
+            },
+            {
+              "code": "for (i = 2; i < n/2; i++)",
+              "isCorrect": false
+            },
+            {
+              "code": "for (i = 2; i <= n/2; i++",
+              "isCorrect": false
+            }
+          ]
+        },
+        {
+          "isPuzzle": true,
+          "options": [
+            {
+              "code": "if (n % i == 0)",
+              "isCorrect": true
+            },
+            {
+              "code": "if (n % i = 0)",
+              "isCorrect": false
+            },
+            {
+              "code": "if (n / i == 0)",
+              "isCorrect": false
+            },
+            {
+              "code": "if (n % i == 0",
+              "isCorrect": false
+            }
+          ]
+        },
+        {
+          "isPuzzle": false,
+          "code": "    {"
+        },
+        {
+          "isPuzzle": true,
+          "options": [
+            {
+              "code": "flag = 1;",
+              "isCorrect": true
+            },
+            {
+              "code": "flag = 0;",
+              "isCorrect": false
+            },
+            {
+              "code": "flag = true;",
+              "isCorrect": false
+            },
+            {
+              "code": "flag = 1",
+              "isCorrect": false
+            }
+          ]
+        },
+        {
+          "isPuzzle": true,
+          "options": [
+            {
+              "code": "break;",
+              "isCorrect": true
+            },
+            {
+              "code": "continue;",
+              "isCorrect": false
+            },
+            {
+              "code": "exit;",
+              "isCorrect": false
+            },
+            {
+              "code": "return;",
+              "isCorrect": false
+            }
+          ]
+        },
+        {
+          "isPuzzle": false,
+          "code": "    }"
+        },
+        {
+          "isPuzzle": true,
+          "options": [
+            {
+              "code": "if (flag == 0)",
+              "isCorrect": true
+            },
+            {
+              "code": "if (flag == 1)",
+              "isCorrect": false
+            },
+            {
+              "code": "if (flag = 0)",
+              "isCorrect": false
+            },
+            {
+              "code": "if (flag == 0",
+              "isCorrect": false
+            }
+          ]
+        },
+        {
+          "isPuzzle": false,
+          "code": "    printf(\"Prime\\n\");"
+        },
+        {
+          "isPuzzle": true,
+          "options": [
+            {
+              "code": "else",
+              "isCorrect": true
+            },
+            {
+              "code": "else if",
+              "isCorrect": false
+            },
+            {
+              "code": "otherwise",
+              "isCorrect": false
+            },
+            {
+              "code": "if not",
+              "isCorrect": false
+            }
+          ]
+        },
+        {
+          "isPuzzle": false,
+          "code": "    printf(\"Not Prime\\n\");"
+        },
+        {
+          "isPuzzle": true,
+          "options": [
+            {
+              "code": "return 0;",
+              "isCorrect": true
+            },
+            {
+              "code": "return;",
+              "isCorrect": false
+            },
+            {
+              "code": "end;",
+              "isCorrect": false
+            },
+            {
+              "code": "exit;",
+              "isCorrect": false
+            }
+          ]
+        },
+        {
+          "isPuzzle": false,
+          "code": "}"
+        }
+      ]
+    }
+  ]
+}
