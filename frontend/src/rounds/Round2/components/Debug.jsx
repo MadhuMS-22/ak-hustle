@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import api from '../services/api';
+import apiService from '../../../services/api';
 
 const Debug = ({ onSubmit, teamId }) => {
     const [code, setCode] = useState('');
@@ -51,7 +51,7 @@ int main() {
         if (code.trim() && teamId) {
             try {
                 const timeTaken = Math.max(0, 300 - timeLeft); // Ensure it's never negative or NaN
-                await api.post('/quiz/code/autosave', {
+                await apiService.post('/quiz/code/autosave', {
                     teamId,
                     challengeType: 'debug',
                     code,

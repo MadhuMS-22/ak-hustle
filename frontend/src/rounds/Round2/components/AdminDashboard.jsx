@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import api from '../services/api';
+import apiService from '../../../services/api';
 
 const AdminDashboard = () => {
     const [overview, setOverview] = useState([]);
@@ -16,7 +16,7 @@ const AdminDashboard = () => {
     const fetchOverview = async () => {
         try {
             setRefreshing(true);
-            const response = await api.get('/admin/overview');
+            const response = await apiService.get('/admin/overview');
             setOverview(response.data);
             setLoading(false);
         } catch (error) {
@@ -29,7 +29,7 @@ const AdminDashboard = () => {
 
     const fetchLeaderboard = async () => {
         try {
-            const response = await api.get('/admin/leaderboard');
+            const response = await apiService.get('/admin/leaderboard');
             setLeaderboard(response.data);
         } catch (error) {
             console.error('Error fetching leaderboard:', error);

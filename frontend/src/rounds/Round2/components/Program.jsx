@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import api from '../services/api';
+import apiService from '../../../services/api';
 
 const Program = ({ onSubmit, teamId }) => {
     const [code, setCode] = useState('');
@@ -45,7 +45,7 @@ Output: 0 1 1 2 3`;
         if (code.trim() && teamId) {
             try {
                 const timeTaken = Math.max(0, 300 - timeLeft);
-                await api.post('/quiz/code/autosave', {
+                await apiService.post('/quiz/code/autosave', {
                     teamId,
                     challengeType: 'program',
                     code,

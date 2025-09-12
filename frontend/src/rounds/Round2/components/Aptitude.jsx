@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import api from '../services/api';
+import apiService from '../../../services/api';
 
 const Aptitude = ({ questionStep, onSubmit, teamProgress }) => {
     const [question, setQuestion] = useState(null);
@@ -11,7 +11,7 @@ const Aptitude = ({ questionStep, onSubmit, teamProgress }) => {
         const fetchQuestion = async () => {
             try {
                 setLoading(true);
-                const response = await api.get(`/quiz/apt/${questionStep}`);
+                const response = await apiService.get(`/quiz/apt/${questionStep}`);
                 setQuestion(response.data);
                 setSelected(null);
                 setLoading(false);
