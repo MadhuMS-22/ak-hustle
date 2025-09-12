@@ -49,30 +49,40 @@ const TeamPage = () => {
         setTeamData(team)
 
         // Update rounds based on team's competition status
+        console.log('Team competition status:', team.competitionStatus)
+        console.log('Team scores:', team.scores)
+        
         const updatedRounds = {
           round1: {
-            status: team.competitionStatus === 'registered' ? 'completed' : 'pending',
-            result: team.competitionStatus === 'registered' ? true : null,
+            status: ['registered', 'round1_completed', 'round2_completed', 'round3_completed'].includes(team.competitionStatus) ? 'completed' : 'pending',
+            result: ['registered', 'round1_completed', 'round2_completed', 'round3_completed'].includes(team.competitionStatus) ? true : null,
             score: team.scores?.round1 || null
           },
           round2: {
-            status: ['round1_completed', 'round2_completed', 'round3_completed'].includes(team.competitionStatus) ? 'completed' : 'pending',
+            status: ['round2_completed', 'round3_completed'].includes(team.competitionStatus) ? 'completed' : 
+                   ['registered', 'round1_completed'].includes(team.competitionStatus) ? 'available' : 'locked',
             result: ['round2_completed', 'round3_completed'].includes(team.competitionStatus) ? true : null,
             score: team.scores?.round2 || null
           },
           round3: {
-            status: team.competitionStatus === 'round3_completed' ? 'completed' : 'pending',
+            status: team.competitionStatus === 'round3_completed' ? 'completed' : 
+                   ['round2_completed'].includes(team.competitionStatus) ? 'available' : 'locked',
             result: team.competitionStatus === 'round3_completed' ? true : null,
             score: team.scores?.round3 || null
           }
         }
+        
+        console.log('Updated rounds:', updatedRounds)
         setRounds(updatedRounds)
       }
 
       // Fetch round codes for verification
       const codesResponse = await apiService.get('/competition/round-codes')
       if (codesResponse.success) {
+        console.log('Round codes fetched:', codesResponse.data.roundCodes)
         setRoundCodes(codesResponse.data.roundCodes)
+      } else {
+        console.log('Failed to fetch round codes:', codesResponse)
       }
 
     } catch (error) {
@@ -144,6 +154,12 @@ const TeamPage = () => {
   }
 
   const getRoundStatus = (round, roundNumber) => {
+    console.log(`Getting status for Round ${roundNumber}:`, {
+      round,
+      round1Result: rounds.round1.result,
+      round2Result: rounds.round2.result
+    })
+    
     if (roundNumber === 1) {
       return round.status === 'completed' ? (round.result ? 'passed' : 'failed') : 'pending'
     } else if (roundNumber === 2) {
