@@ -1,5 +1,6 @@
 import express from 'express';
 import Team from '../models/Team.js';
+import Submission from '../models/Submission.js';
 import RoundCodes from '../models/RoundCodes.js';
 import { adminAuth } from '../middleware/adminAuth.js';
 
@@ -339,6 +340,195 @@ const resetRoundCode = async (req, res) => {
     }
 };
 
+// @desc    Get Round 2 admin data (Admin only)
+// @route   GET /api/admin/round2/data
+// @access  Private (Admin)
+const getRound2AdminData = async (req, res) => {
+    try {
+        console.log('Getting Round 2 admin data...');
+
+        // Get all teams that have participated in Round 2
+        const teams = await Team.find({
+            isActive: true,
+            $or: [
+                { competitionStatus: 'round2_completed' },
+                { competitionStatus: 'round3_completed' },
+                { 'scores.round2': { $gt: 0 } },
+                { 'startTime': { $exists: true } }
+            ]
+        })
+            .select('-password')
+            .sort({ totalScore: -1, totalTimeTaken: 1 });
+
+        console.log('Teams found:', teams.length);
+
+        // Get all submissions for Round 2
+        console.log('Getting submissions...');
+        const submissions = await Submission.find({
+            $or: [
+                { questionType: 'aptitude' },
+                { challengeType: { $in: ['debug', 'trace', 'program'] } }
+            ]
+        })
+            .populate('team', 'teamName members leader')
+            .sort({ createdAt: -1 });
+
+        console.log('Submissions found:', submissions.length);
+
+        // Calculate statistics
+        const totalParticipants = teams.length;
+        const completedTeams = teams.filter(team => team.isQuizCompleted).length;
+        const averageScore = totalParticipants > 0
+            ? Math.round(teams.reduce((sum, team) => sum + (team.totalScore || 0), 0) / totalParticipants)
+            : 0;
+        const highestScore = totalParticipants > 0
+            ? Math.max(...teams.map(team => team.totalScore || 0))
+            : 0;
+
+        res.status(200).json({
+            success: true,
+            data: {
+                teams: teams.map(team => ({
+                    _id: team._id,
+                    teamName: team.teamName,
+                    members: team.members,
+                    leader: team.leader,
+                    totalScore: team.totalScore || 0,
+                    totalTimeTaken: team.totalTimeTaken || 0,
+                    isQuizCompleted: team.isQuizCompleted || false,
+                    startTime: team.startTime,
+                    endTime: team.endTime,
+                    scores: team.scores || {},
+                    completedQuestions: team.completedQuestions || {},
+                    aptitudeAttempts: team.aptitudeAttempts || {}
+                })),
+                submissions: submissions.map(sub => ({
+                    _id: sub._id,
+                    team: sub.team,
+                    questionNumber: sub.questionNumber,
+                    questionType: sub.questionType,
+                    challengeType: sub.challengeType,
+                    originalQuestion: sub.originalQuestion,
+                    userSolution: sub.userSolution,
+                    timeTaken: sub.timeTaken,
+                    attemptNumber: sub.attemptNumber,
+                    isCorrect: sub.isCorrect,
+                    score: sub.score,
+                    isAutoSaved: sub.isAutoSaved,
+                    createdAt: sub.createdAt
+                })),
+                statistics: {
+                    totalParticipants,
+                    completedTeams,
+                    averageScore,
+                    highestScore
+                }
+            }
+        });
+    } catch (error) {
+        console.error('Get Round 2 admin data error:', error);
+        console.error('Error details:', {
+            message: error.message,
+            stack: error.stack,
+            name: error.name
+        });
+        res.status(500).json({
+            success: false,
+            message: 'Server error while fetching Round 2 admin data',
+            error: error.message
+        });
+    }
+};
+
+// @desc    Get team's Round 2 submissions (Admin only)
+// @route   GET /api/admin/round2/team/:teamId/submissions
+// @access  Private (Admin)
+const getTeamRound2Submissions = async (req, res) => {
+    try {
+        const { teamId } = req.params;
+
+        const team = await Team.findById(teamId).select('-password');
+        if (!team) {
+            return res.status(404).json({
+                success: false,
+                message: 'Team not found'
+            });
+        }
+
+        const submissions = await Submission.find({
+            team: teamId,
+            $or: [
+                { questionType: 'aptitude' },
+                { challengeType: { $in: ['debug', 'trace', 'program'] } }
+            ]
+        })
+            .sort({ createdAt: -1 });
+
+        res.status(200).json({
+            success: true,
+            data: {
+                team: {
+                    _id: team._id,
+                    teamName: team.teamName,
+                    members: team.members,
+                    leader: team.leader,
+                    totalScore: team.totalScore || 0,
+                    totalTimeTaken: team.totalTimeTaken || 0,
+                    isQuizCompleted: team.isQuizCompleted || false,
+                    startTime: team.startTime,
+                    endTime: team.endTime,
+                    scores: team.scores || {},
+                    completedQuestions: team.completedQuestions || {},
+                    aptitudeAttempts: team.aptitudeAttempts || {}
+                },
+                submissions: submissions.map(sub => ({
+                    _id: sub._id,
+                    questionNumber: sub.questionNumber,
+                    questionType: sub.questionType,
+                    challengeType: sub.challengeType,
+                    originalQuestion: sub.originalQuestion,
+                    userSolution: sub.userSolution,
+                    timeTaken: sub.timeTaken,
+                    attemptNumber: sub.attemptNumber,
+                    isCorrect: sub.isCorrect,
+                    score: sub.score,
+                    isAutoSaved: sub.isAutoSaved,
+                    createdAt: sub.createdAt
+                }))
+            }
+        });
+    } catch (error) {
+        console.error('Get team Round 2 submissions error:', error);
+        res.status(500).json({
+            success: false,
+            message: 'Server error while fetching team Round 2 submissions'
+        });
+    }
+};
+
+// @desc    Validate admin token (Admin only)
+// @route   GET /api/admin/validate
+// @access  Private (Admin)
+const validateAdminToken = async (req, res) => {
+    try {
+        // If we reach here, the adminAuth middleware has already validated the token
+        res.status(200).json({
+            success: true,
+            message: 'Admin token is valid',
+            data: {
+                admin: req.admin
+            }
+        });
+    } catch (error) {
+        console.error('Validate admin token error:', error);
+        res.status(500).json({
+            success: false,
+            message: 'Server error while validating admin token'
+        });
+    }
+};
+
+router.get('/validate', adminAuth, validateAdminToken);
 router.put('/teams/:id/status', adminAuth, updateTeamStatus);
 router.post('/announce/:round', adminAuth, announceRoundResults);
 router.post('/start/:round', adminAuth, startRound);
@@ -346,5 +536,7 @@ router.get('/stats', adminAuth, getCompetitionStats);
 router.get('/round-codes', adminAuth, getRoundCodes);
 router.post('/round-codes', adminAuth, setRoundCode);
 router.delete('/round-codes/:round', adminAuth, resetRoundCode);
+router.get('/round2/data', adminAuth, getRound2AdminData);
+router.get('/round2/team/:teamId/submissions', adminAuth, getTeamRound2Submissions);
 
 export default router;

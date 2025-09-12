@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import apiService from '../services/api'
 import adminAuthService from '../services/adminAuthService';
 import round3Service from '../services/round3Service';
+import Round2AdminDashboard from '../components/Round2AdminDashboard';
 
 const AdminPage = () => {
     const navigate = useNavigate();
@@ -1138,7 +1139,7 @@ const AdminPage = () => {
             case 'team-management':
                 return renderTeamManagement();
             case 'round2':
-                return renderRound2Results();
+                return <Round2AdminDashboard />;
             case 'round3':
                 return renderRound3Results();
             default:
@@ -1214,7 +1215,7 @@ const AdminPage = () => {
                             <svg className="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
                             </svg>
-                            Round 2
+                            Round 2 Admin
                         </div>
                     </button>
                     <button
