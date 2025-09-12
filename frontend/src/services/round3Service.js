@@ -1,4 +1,5 @@
 import apiService from './api.js';
+import adminAuthService from './adminAuthService.js';
 
 class Round3Service {
     // Submit Round 3 results
@@ -24,8 +25,18 @@ class Round3Service {
     // Admin: Fetch all Round 3 results
     async fetchRound3Results() {
         try {
-            const response = await apiService.get('/round3/admin/results');
-            return response;
+            const response = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:5009/api'}/round3/admin/results`, {
+                method: 'GET',
+                headers: adminAuthService.getAdminHeaders()
+            });
+
+            const data = await response.json();
+
+            if (!response.ok) {
+                throw new Error(data.message || `HTTP error! status: ${response.status}`);
+            }
+
+            return data;
         } catch (error) {
             throw error;
         }
@@ -34,8 +45,19 @@ class Round3Service {
     // Admin: Set Round 3 score for a team
     async setRound3Score(teamId, score) {
         try {
-            const response = await apiService.post(`/round3/admin/update-score/${teamId}`, { score });
-            return response;
+            const response = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:5009/api'}/round3/admin/update-score/${teamId}`, {
+                method: 'POST',
+                headers: adminAuthService.getAdminHeaders(),
+                body: JSON.stringify({ score })
+            });
+
+            const data = await response.json();
+
+            if (!response.ok) {
+                throw new Error(data.message || `HTTP error! status: ${response.status}`);
+            }
+
+            return data;
         } catch (error) {
             throw error;
         }

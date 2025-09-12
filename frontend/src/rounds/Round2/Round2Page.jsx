@@ -63,8 +63,10 @@ const Round2Page = () => {
         try {
             setIsLoading(true);
             const response = await apiService.get(`/quiz/team/${teamId}/progress`);
-            setTeamProgress(response.data.team);
-            setIsQuizCompleted(response.data.team.isQuizCompleted);
+            if (response.data && response.data.team) {
+                setTeamProgress(response.data.team);
+                setIsQuizCompleted(response.data.team.isQuizCompleted || false);
+            }
         } catch (error) {
             console.error('Error loading team progress:', error);
         } finally {
@@ -227,7 +229,7 @@ const Round2Page = () => {
                 <div className="mb-6">
                     <h3 className="text-lg font-bold text-cyan-400 mb-2">Team: {teamName}</h3>
                     <div className="text-sm text-slate-400">
-                        Progress: {teamProgress ? Object.values(teamProgress.completedQuestions).filter(Boolean).length : 0}/6 Questions
+                        Progress: {teamProgress?.completedQuestions ? Object.values(teamProgress.completedQuestions).filter(Boolean).length : 0}/6 Questions
                     </div>
                 </div>
 
@@ -245,12 +247,12 @@ const Round2Page = () => {
                         const aptitudeKey = `q${pair.aptitude + 1}`;
                         const challengeKey = `q${pair.aptitude + 4}`;
 
-                        const aptitudeCompleted = teamProgress ? teamProgress.completedQuestions[aptitudeKey] : false;
-                        const challengeCompleted = teamProgress ? teamProgress.completedQuestions[challengeKey] : false;
+                        const aptitudeCompleted = teamProgress?.completedQuestions?.[aptitudeKey] || false;
+                        const challengeCompleted = teamProgress?.completedQuestions?.[challengeKey] || false;
 
                         // Sequential unlocking logic
-                        const aptitudeUnlocked = teamProgress ? teamProgress.unlockedQuestions[aptitudeKey] : (pair.aptitude === 0);
-                        const challengeUnlocked = teamProgress ? teamProgress.unlockedQuestions[challengeKey] : false;
+                        const aptitudeUnlocked = teamProgress?.unlockedQuestions?.[aptitudeKey] || (pair.aptitude === 0);
+                        const challengeUnlocked = teamProgress?.unlockedQuestions?.[challengeKey] || false;
 
                         const isCurrentAptitude = currentQuestion === pair.aptitude && !aptitudeCompleted;
                         const isCurrentChallenge = currentChallenge === pair.challenge;

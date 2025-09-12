@@ -52,27 +52,29 @@ const TeamPage = () => {
         console.log('Team competition status:', team.competitionStatus)
         console.log('Team scores:', team.scores)
 
+        // FOR TESTING: Unlock all rounds regardless of dependencies
         const updatedRounds = {
           round1: {
-            status: ['registered', 'round1_completed', 'round2_completed', 'round3_completed'].includes(team.competitionStatus) ? 'completed' : 'pending',
-            result: ['registered', 'round1_completed', 'round2_completed', 'round3_completed'].includes(team.competitionStatus) ? true : null,
+            status: team.competitionStatus === 'registered' ? 'completed' : 'available',
+            result: team.competitionStatus === 'registered' ? true : null,
             score: team.scores?.round1 || null
           },
           round2: {
-            status: ['round2_completed', 'round3_completed'].includes(team.competitionStatus) ? 'completed' :
-              ['registered', 'round1_completed'].includes(team.competitionStatus) ? 'available' : 'locked',
-            result: ['round2_completed', 'round3_completed'].includes(team.competitionStatus) ? true : null,
+            status: 'available', // Always available for testing
+            result: null,
             score: team.scores?.round2 || null
           },
           round3: {
-            status: team.competitionStatus === 'round3_completed' ? 'completed' :
-              ['round2_completed'].includes(team.competitionStatus) ? 'available' : 'locked',
-            result: team.competitionStatus === 'round3_completed' ? true : null,
+            status: 'available', // Always available for testing
+            result: null,
             score: team.scores?.round3 || null
           }
         }
 
         console.log('Updated rounds:', updatedRounds)
+        console.log('Round 1 status:', updatedRounds.round1.status, 'result:', updatedRounds.round1.result)
+        console.log('Round 2 status:', updatedRounds.round2.status, 'result:', updatedRounds.round2.result)
+        console.log('Round 3 status:', updatedRounds.round3.status, 'result:', updatedRounds.round3.result)
         setRounds(updatedRounds)
       }
 
@@ -156,18 +158,28 @@ const TeamPage = () => {
   const getRoundStatus = (round, roundNumber) => {
     console.log(`Getting status for Round ${roundNumber}:`, {
       round,
-      round1Result: rounds.round1.result,
-      round2Result: rounds.round2.result
+      round1Status: rounds.round1?.status,
+      round2Status: rounds.round2?.status,
+      round3Status: rounds.round3?.status
     })
 
+    // FOR TESTING: Remove dependencies - all rounds are available
     if (roundNumber === 1) {
-      return round.status === 'completed' ? (round.result ? 'passed' : 'failed') : 'pending'
+      const status = round.status === 'completed' ? (round.result ? 'passed' : 'failed') : 'available'
+      console.log(`Round 1 status: ${status}`)
+      return status
     } else if (roundNumber === 2) {
-      return rounds.round1.result ? (round.status === 'completed' ? (round.result ? 'passed' : 'failed') : 'available') : 'locked'
+      // Round 2 is always available for testing
+      const status = round.status === 'completed' ? (round.result ? 'passed' : 'failed') : 'available'
+      console.log(`Round 2 status: ${status}`)
+      return status
     } else if (roundNumber === 3) {
-      return rounds.round2.result ? (round.status === 'completed' ? (round.result ? 'passed' : 'failed') : 'available') : 'locked'
+      // Round 3 is always available for testing
+      const status = round.status === 'completed' ? (round.result ? 'passed' : 'failed') : 'available'
+      console.log(`Round 3 status: ${status}`)
+      return status
     }
-    return 'pending'
+    return 'available'
   }
 
   const getRoundMessage = (round, roundNumber) => {
@@ -178,7 +190,7 @@ const TeamPage = () => {
       case 'failed':
         return `Round ${roundNumber} completed. Better luck next time!`
       case 'available':
-        return `Round ${roundNumber} is now available. Click to start!`
+        return `Round ${roundNumber} is available for testing. Click to start!`
       case 'locked':
         return `Complete previous round to unlock Round ${roundNumber}`
       case 'pending':
