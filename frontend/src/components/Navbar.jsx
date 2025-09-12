@@ -49,14 +49,6 @@ const Navbar = () => {
                 <span className="text-sm text-gray-300">
                   Welcome, {teamData?.teamName || 'Team'}!
                 </span>
-                {location.pathname !== '/team' && (
-                  <button
-                    onClick={() => navigate('/team')}
-                    className="px-4 py-2 text-sm font-medium text-gray-300 hover:text-white transition-all duration-300 hover:bg-white hover:bg-opacity-10 rounded-lg backdrop-blur-md"
-                  >
-                    Dashboard
-                  </button>
-                )}
                 <button
                   onClick={handleLogout}
                   className="px-4 py-2 text-sm font-medium text-red-300 hover:text-red-200 hover:bg-red-500 hover:bg-opacity-20 transition-all duration-300 rounded-lg backdrop-blur-md"
@@ -108,23 +100,6 @@ const Navbar = () => {
                   <div className="px-6 py-2 text-sm text-gray-300 border-b border-white border-opacity-20">
                     Welcome, {teamData?.teamName || 'Team'}!
                   </div>
-                  {location.pathname !== '/team' && (
-                    <button
-                      onClick={() => {
-                        navigate('/team');
-                        setIsMobileMenuOpen(false);
-                      }}
-                      className="w-full text-left px-6 py-4 text-lg font-semibold text-gray-300 hover:text-white hover:bg-white hover:bg-opacity-10 rounded-xl transition-all duration-300"
-                    >
-                      <div className="flex items-center">
-                        <svg className="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2H5a2 2 0 00-2-2z" />
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 5a2 2 0 012-2h4a2 2 0 012 2v6H8V5z" />
-                        </svg>
-                        Dashboard
-                      </div>
-                    </button>
-                  )}
                   <button
                     onClick={() => {
                       handleLogout();

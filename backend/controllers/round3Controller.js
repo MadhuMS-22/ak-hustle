@@ -55,7 +55,7 @@ export const getRound3Scores = async (req, res) => {
 export const getAllRound3Results = async (req, res) => {
     try {
         const teams = await Team.find({ round3Completed: true })
-            .select('teamName members leader round3Score round3Time round3SubmittedAt round3QuestionOrderName round3Program')
+            .select('teamName members leader round3Score round3Time round3SubmittedAt round3QuestionOrderName round3Program round3QuestionResults round3IndividualScores')
             .sort({ round3Score: -1, round3Time: 1 });
 
         res.status(200).json({

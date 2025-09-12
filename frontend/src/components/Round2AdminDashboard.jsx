@@ -57,7 +57,15 @@ const Round2AdminDashboard = () => {
     const fetchTeamSubmissions = async (teamId) => {
         try {
             const response = await adminApiCall(`/admin/round2/team/${teamId}/submissions`);
-            setSelectedTeam(response.data);
+            // Update the team in the list with submissions data
+            setRound2Data(prev => ({
+                ...prev,
+                teams: prev.teams.map(team =>
+                    team._id === teamId
+                        ? { ...team, submissions: response.data.submissions }
+                        : team
+                )
+            }));
         } catch (err) {
             console.error('Error fetching team submissions:', err);
             setError('Failed to fetch team submissions');

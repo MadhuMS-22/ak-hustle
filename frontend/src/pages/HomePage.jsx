@@ -40,15 +40,6 @@ const HomePage = () => {
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14 5l7 7m0 0l-7 7m7-7H3" />
                 </svg>
               </button>
-              <button
-                onClick={() => navigate('/login')}
-                className="flex items-center justify-center px-8 py-4 bg-white bg-opacity-10 text-white text-lg font-semibold rounded-xl shadow-lg hover:bg-opacity-20 transition-all duration-300 transform hover:scale-105 backdrop-blur-md border border-white border-opacity-20"
-              >
-                Sign In
-                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 ml-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1" />
-                </svg>
-              </button>
             </div>
           </div>
         </section>

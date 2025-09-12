@@ -186,7 +186,7 @@ const TeamPage = () => {
     const status = getRoundStatus(round, roundNumber)
     switch (status) {
       case 'passed':
-        return `Congratulations! You passed Round ${roundNumber} with ${round.score}%`
+        return `Congratulations! You qualified for Round ${roundNumber}!`
       case 'failed':
         return `Round ${roundNumber} completed. Better luck next time!`
       case 'available':
@@ -194,7 +194,7 @@ const TeamPage = () => {
       case 'locked':
         return `Complete previous round to unlock Round ${roundNumber}`
       case 'pending':
-        return `Round ${roundNumber} - Offline round completed successfully!`
+        return `Round ${roundNumber} - Registration completed successfully!`
       default:
         return "Round information not available"
     }
@@ -224,16 +224,6 @@ const TeamPage = () => {
             </h1>
             <p className='text-lg text-gray-300 mb-4'>Your team dashboard - check results and start new rounds</p>
 
-            {/* Refresh Button */}
-            <button
-              onClick={() => teamData?._id && fetchTeamData(teamData._id)}
-              className="bg-white/20 hover:bg-white/30 text-white font-semibold py-2 px-4 rounded-lg transition-all duration-300 hover:scale-105 flex items-center mx-auto"
-            >
-              <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
-              </svg>
-              Refresh Data
-            </button>
           </div>
         </div>
 
@@ -252,7 +242,7 @@ const TeamPage = () => {
               <div className={classNames('p-6 rounded-2xl text-center bg-white/10 backdrop-blur-md border border-white/20 shadow-xl w-full flex flex-col justify-center items-center gap-6 transition-all duration-300 hover:scale-105', {
                 "bg-green-600/20 border-green-400/30": getRoundStatus(rounds.round1, 1) === 'passed',
                 "bg-red-600/20 border-red-400/30": getRoundStatus(rounds.round1, 1) === 'failed',
-                "bg-blue-600/20 border-blue-400/30": getRoundStatus(rounds.round1, 1) === 'pending'
+                "bg-orange-600/20 border-orange-400/30": getRoundStatus(rounds.round1, 1) === 'pending'
               })}>
                 <div className='flex flex-col items-center gap-4'>
                   <div className="p-4 rounded-full bg-white/10 backdrop-blur-md">
@@ -384,11 +374,7 @@ const TeamPage = () => {
                 </svg>
               </div>
               <h3 className="text-2xl font-bold text-white mb-2">Round 1 Result</h3>
-              <p className="text-green-300 text-lg mb-4">Congratulations! You Passed!</p>
-              <div className="bg-white/10 rounded-lg p-4 mb-6">
-                <p className="text-white text-sm mb-2">Your Score:</p>
-                <p className="text-3xl font-bold text-green-400">{rounds.round1.score || 'N/A'}%</p>
-              </div>
+              <p className="text-green-300 text-lg mb-4">Congratulations! You Qualified!</p>
               <p className="text-gray-300 text-sm mb-6">
                 You have successfully qualified for Round 2. The next round will be available soon!
               </p>

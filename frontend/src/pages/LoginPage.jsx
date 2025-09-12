@@ -85,9 +85,6 @@ const LoginPage = () => {
         <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-12">
           <div className="max-w-md mx-auto">
             <div className="text-center mb-8">
-              <div className="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-br from-purple-500 to-purple-600 bg-opacity-20 rounded-full mb-6 backdrop-blur-md shadow-xl">
-                {renderIcon("M12 2a10 10 0 0 0-9.25 10.74C3.89 19.34 8.1 22 12 22s8.11-2.66 9.25-9.26A10 10 0 0 0 12 2z", "w-8 h-8 text-purple-400")}
-              </div>
               <h1 className="text-4xl sm:text-5xl font-bold text-white mb-4 bg-gradient-to-r from-white to-purple-200 bg-clip-text text-transparent">
                 Team Login
               </h1>

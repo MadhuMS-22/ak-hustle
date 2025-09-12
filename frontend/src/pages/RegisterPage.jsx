@@ -164,9 +164,6 @@ const RegisterPage = () => {
           <div className="max-w-3xl mx-auto">
             {/* Header */}
             <div className="text-center mb-10">
-              <div className="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-br from-purple-500 to-purple-600 bg-opacity-20 rounded-full mb-6 backdrop-blur-md shadow-xl">
-                {renderIcon("M17 20v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2M7 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8zm12 0a4 4 0 1 0 0-8 4 4 0 0 0 0 8z", "w-8 h-8 text-purple-400")}
-              </div>
               <h1 className="text-4xl sm:text-5xl font-bold text-white mb-4 bg-gradient-to-r from-white to-purple-200 bg-clip-text text-transparent">
                 Team Registration
               </h1>
@@ -178,7 +175,7 @@ const RegisterPage = () => {
             {/* Registration Form */}
             <div className="bg-white bg-opacity-10 backdrop-blur-md rounded-2xl p-6 shadow-xl border border-white border-opacity-20">
               {message.text && (
-                <div className={`p-4 rounded-xl mb-6 ${message.type === 'success' ? 'bg-green-500 bg-opacity-20 text-green-200 border border-green-400 border-opacity-30' :
+                <div className={`p-4 rounded-lg mb-6 ${message.type === 'success' ? 'bg-green-500 bg-opacity-20 text-green-200 border border-green-400 border-opacity-30' :
                   message.type === 'error' ? 'bg-red-500 bg-opacity-20 text-red-200 border border-red-400 border-opacity-30' :
                     message.type === 'info' ? 'bg-blue-500 bg-opacity-20 text-blue-200 border border-blue-400 border-opacity-30' :
                       'bg-gray-500 bg-opacity-20 text-gray-200 border border-gray-400 border-opacity-30'
@@ -217,7 +214,7 @@ const RegisterPage = () => {
                     name="teamName"
                     value={formData.teamName}
                     onChange={handleInputChange}
-                    className="w-full px-4 py-3 bg-white bg-opacity-10 border border-white border-opacity-20 rounded-xl text-white placeholder-gray-300 focus:outline-none focus:ring-2 focus:ring-purple-400 focus:border-transparent transition-all duration-300 backdrop-blur-md"
+                    className="w-full px-3 py-2 bg-white bg-opacity-10 border border-white border-opacity-20 rounded-lg text-white placeholder-gray-300 focus:outline-none focus:ring-2 focus:ring-purple-400 focus:border-transparent transition-all duration-300 backdrop-blur-md"
                     placeholder="Enter your team name"
                   />
                   {errors.teamName && <p className="text-red-400 text-sm mt-1 flex items-center">
@@ -238,7 +235,7 @@ const RegisterPage = () => {
                   </h3>
 
                   {/* Member 1 */}
-                  <div className="bg-white bg-opacity-5 rounded-xl p-4 border border-white border-opacity-10">
+                  <div className="bg-white bg-opacity-5 rounded-lg p-4 border border-white border-opacity-10">
                     <h4 className="text-base font-semibold text-purple-300 mb-4 flex items-center">
                       <div className="w-6 h-6 bg-purple-500 bg-opacity-20 rounded-full flex items-center justify-center mr-2">
                         <span className="text-purple-300 font-bold text-sm">1</span>
@@ -258,7 +255,7 @@ const RegisterPage = () => {
                           name="member1Name"
                           value={formData.member1Name}
                           onChange={handleInputChange}
-                          className="w-full px-4 py-3 bg-white bg-opacity-10 border border-white border-opacity-20 rounded-xl text-white placeholder-gray-300 focus:outline-none focus:ring-2 focus:ring-purple-400 focus:border-transparent transition-all duration-300 backdrop-blur-md"
+                          className="w-full px-3 py-2 bg-white bg-opacity-10 border border-white border-opacity-20 rounded-lg text-white placeholder-gray-300 focus:outline-none focus:ring-2 focus:ring-purple-400 focus:border-transparent transition-all duration-300 backdrop-blur-md"
                           placeholder="Enter member 1 name"
                         />
                         {errors.member1Name && <p className="text-red-400 text-sm mt-1 flex items-center">
@@ -280,7 +277,7 @@ const RegisterPage = () => {
                           name="member1Email"
                           value={formData.member1Email}
                           onChange={handleInputChange}
-                          className="w-full px-4 py-3 bg-white bg-opacity-10 border border-white border-opacity-20 rounded-xl text-white placeholder-gray-300 focus:outline-none focus:ring-2 focus:ring-purple-400 focus:border-transparent transition-all duration-300 backdrop-blur-md"
+                          className="w-full px-3 py-2 bg-white bg-opacity-10 border border-white border-opacity-20 rounded-lg text-white placeholder-gray-300 focus:outline-none focus:ring-2 focus:ring-purple-400 focus:border-transparent transition-all duration-300 backdrop-blur-md"
                           placeholder="member1@example.com"
                         />
                         {errors.member1Email && <p className="text-red-400 text-sm mt-1 flex items-center">
@@ -294,7 +291,7 @@ const RegisterPage = () => {
                   </div>
 
                   {/* Member 2 */}
-                  <div className="bg-white bg-opacity-5 rounded-xl p-4 border border-white border-opacity-10">
+                  <div className="bg-white bg-opacity-5 rounded-lg p-4 border border-white border-opacity-10">
                     <h4 className="text-base font-semibold text-purple-300 mb-4 flex items-center">
                       <div className="w-6 h-6 bg-purple-500 bg-opacity-20 rounded-full flex items-center justify-center mr-2">
                         <span className="text-purple-300 font-bold text-sm">2</span>
@@ -314,7 +311,7 @@ const RegisterPage = () => {
                           name="member2Name"
                           value={formData.member2Name}
                           onChange={handleInputChange}
-                          className="w-full px-4 py-3 bg-white bg-opacity-10 border border-white border-opacity-20 rounded-xl text-white placeholder-gray-300 focus:outline-none focus:ring-2 focus:ring-purple-400 focus:border-transparent transition-all duration-300 backdrop-blur-md"
+                          className="w-full px-3 py-2 bg-white bg-opacity-10 border border-white border-opacity-20 rounded-lg text-white placeholder-gray-300 focus:outline-none focus:ring-2 focus:ring-purple-400 focus:border-transparent transition-all duration-300 backdrop-blur-md"
                           placeholder="Enter member 2 name"
                         />
                         {errors.member2Name && <p className="text-red-400 text-sm mt-1 flex items-center">
@@ -336,7 +333,7 @@ const RegisterPage = () => {
                           name="member2Email"
                           value={formData.member2Email}
                           onChange={handleInputChange}
-                          className="w-full px-4 py-3 bg-white bg-opacity-10 border border-white border-opacity-20 rounded-xl text-white placeholder-gray-300 focus:outline-none focus:ring-2 focus:ring-purple-400 focus:border-transparent transition-all duration-300 backdrop-blur-md"
+                          className="w-full px-3 py-2 bg-white bg-opacity-10 border border-white border-opacity-20 rounded-lg text-white placeholder-gray-300 focus:outline-none focus:ring-2 focus:ring-purple-400 focus:border-transparent transition-all duration-300 backdrop-blur-md"
                           placeholder="member2@example.com"
                         />
                         {errors.member2Email && <p className="text-red-400 text-sm mt-1 flex items-center">
@@ -431,7 +428,7 @@ const RegisterPage = () => {
                     name="leaderPhone"
                     value={formData.leaderPhone}
                     onChange={handleInputChange}
-                    className="w-full px-6 py-4 bg-white bg-opacity-10 border border-white border-opacity-20 rounded-2xl text-white placeholder-gray-300 focus:outline-none focus:ring-2 focus:ring-purple-400 focus:border-transparent transition-all duration-300 backdrop-blur-md text-lg"
+                    className="w-full px-4 py-3 bg-white bg-opacity-10 border border-white border-opacity-20 rounded-2xl text-white placeholder-gray-300 focus:outline-none focus:ring-2 focus:ring-purple-400 focus:border-transparent transition-all duration-300 backdrop-blur-md text-lg"
                     placeholder="+1 (555) 123-4567"
                   />
                   {errors.leaderPhone && <p className="text-red-400 text-sm mt-2 flex items-center">
@@ -467,7 +464,7 @@ const RegisterPage = () => {
                           name="password"
                           value={formData.password}
                           onChange={handleInputChange}
-                          className="w-full px-6 py-4 pr-14 bg-white bg-opacity-10 border border-white border-opacity-20 rounded-2xl text-white placeholder-gray-300 focus:outline-none focus:ring-2 focus:ring-purple-400 focus:border-transparent transition-all duration-300 backdrop-blur-md text-lg"
+                          className="w-full px-4 py-3 pr-14 bg-white bg-opacity-10 border border-white border-opacity-20 rounded-2xl text-white placeholder-gray-300 focus:outline-none focus:ring-2 focus:ring-purple-400 focus:border-transparent transition-all duration-300 backdrop-blur-md text-lg"
                           placeholder="Enter password"
                         />
                         <button
@@ -510,7 +507,7 @@ const RegisterPage = () => {
                         name="confirmPassword"
                         value={formData.confirmPassword}
                         onChange={handleInputChange}
-                        className="w-full px-6 py-4 bg-white bg-opacity-10 border border-white border-opacity-20 rounded-2xl text-white placeholder-gray-300 focus:outline-none focus:ring-2 focus:ring-purple-400 focus:border-transparent transition-all duration-300 backdrop-blur-md text-lg"
+                        className="w-full px-4 py-3 bg-white bg-opacity-10 border border-white border-opacity-20 rounded-2xl text-white placeholder-gray-300 focus:outline-none focus:ring-2 focus:ring-purple-400 focus:border-transparent transition-all duration-300 backdrop-blur-md text-lg"
                         placeholder="Confirm password"
                       />
                       {errors.confirmPassword && <p className="text-red-400 text-sm mt-2 flex items-center">
@@ -528,7 +525,7 @@ const RegisterPage = () => {
                   <button
                     type="button"
                     onClick={handleSubmit}
-                    className="w-full bg-gradient-to-r from-purple-600 to-purple-700 hover:from-purple-700 hover:to-purple-800 text-white font-bold py-4 px-6 rounded-xl transition-all duration-300 hover:scale-105 transform shadow-xl hover:shadow-purple-500/25"
+                    className="w-full bg-gradient-to-r from-purple-600 to-purple-700 hover:from-purple-700 hover:to-purple-800 text-white font-bold py-4 px-6 rounded-lg transition-all duration-300 hover:scale-105 transform shadow-xl hover:shadow-purple-500/25"
                   >
                     <div className="flex items-center justify-center">
                       <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">

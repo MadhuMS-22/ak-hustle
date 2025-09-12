@@ -103,17 +103,51 @@ export const checkNotDisqualified = (req, res, next) => {
     next();
 };
 
-// Middleware to check admin access (simple implementation)
-// In a real app, you'd have proper admin authentication
+// Middleware to check admin access
 export const adminAuth = async (req, res, next) => {
     try {
-        // For now, we'll use the same protect middleware
-        // In production, you'd check for admin role/permissions
-        await protect(req, res, () => {
-            // Add admin check logic here if needed
-            // For now, any authenticated user can access admin routes
+        let token;
+
+        // Check for token in headers
+        if (req.headers.authorization && req.headers.authorization.startsWith('Bearer')) {
+            token = req.headers.authorization.split(' ')[1];
+        }
+
+        // Check if token exists
+        if (!token) {
+            return res.status(401).json({
+                success: false,
+                message: 'Access denied. No admin token provided.'
+            });
+        }
+
+        try {
+            // Verify admin token
+            const decoded = jwt.verify(token, process.env.JWT_SECRET);
+
+            // Check if this is an admin token (has admin role)
+            if (decoded.role !== 'admin') {
+                return res.status(403).json({
+                    success: false,
+                    message: 'Access denied. Admin privileges required.'
+                });
+            }
+
+            // Add admin info to request object
+            req.admin = {
+                id: decoded.id,
+                username: decoded.username,
+                role: decoded.role,
+                permissions: decoded.permissions
+            };
+
             next();
-        });
+        } catch (error) {
+            return res.status(401).json({
+                success: false,
+                message: 'Invalid token.'
+            });
+        }
     } catch (error) {
         console.error('Admin auth error:', error);
         return res.status(500).json({
