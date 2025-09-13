@@ -1,75 +1,34 @@
 import React from 'react';
+import { useNavigate } from 'react-router-dom';
 
-const ChallengeSelection = ({ onSelectChallenge }) => {
-    const challenges = [
-        {
-            id: 'debug',
-            title: 'Debug Challenge',
-            description: 'Find and fix bugs in C code',
-            icon: '🐛',
-            color: 'bg-cyan-600',
-            hoverColor: 'hover:bg-cyan-700'
-        },
-        {
-            id: 'trace',
-            title: 'Trace Challenge',
-            description: 'Trace through recursive functions',
-            icon: '🔍',
-            color: 'bg-green-600',
-            hoverColor: 'hover:bg-green-700'
-        },
-        {
-            id: 'program',
-            title: 'Program Challenge',
-            description: 'Write complete C programs',
-            icon: '💻',
-            color: 'bg-orange-600',
-            hoverColor: 'hover:bg-orange-700'
-        }
-    ];
+const ChallengeSelection = ({ onStart }) => {
+    const navigate = useNavigate();
 
     return (
-        <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 p-4">
+        <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 p-4 flex items-center justify-center">
             <div className="max-w-4xl mx-auto">
-                <div className="bg-slate-800 rounded-2xl shadow-2xl p-8 border border-slate-700">
-                    <div className="text-center mb-8">
-                        <h2 className="text-4xl font-bold text-cyan-400 mb-2">
-                            Choose Your Challenge
-                        </h2>
-                        <p className="text-lg text-slate-300">
-                            Select any coding challenge to continue. Each challenge has a 5-minute timer.
-                        </p>
-                        <div className="w-24 h-1 bg-cyan-400 mx-auto rounded-full mt-4"></div>
+                <div className="bg-slate-800 rounded-2xl shadow-2xl p-8 border border-slate-700 text-white text-center">
+                    <h2 className="text-4xl font-bold text-cyan-400 mb-4">
+                        Welcome to Round 2: The Coding Challenge
+                    </h2>
+                    <p className="text-lg text-slate-300 mb-6">
+                        Prepare to test your problem-solving and coding skills. You will face a series of challenges that must be completed sequentially.
+                    </p>
+                    <div className="bg-slate-700 rounded-xl p-6 mb-8 border border-slate-600">
+                        <h3 className="text-xl font-bold text-slate-200 mb-3">Rules and Format:</h3>
+                        <ul className="text-left text-slate-300 space-y-2 list-disc list-inside">
+                            <li>Complete three aptitude questions to unlock the three coding challenges.</li>
+                            <li>Each aptitude question has **two attempts**. A correct first attempt gives **2 points**, while a correct second attempt gives **1 point**.</li>
+                            <li>The coding challenges (Debug, Trace, Program) do not award points directly. Submissions will be reviewed by administrators.</li>
+                            <li>Each coding challenge has a 5-minute timer.</li>
+                        </ul>
                     </div>
-
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                        {challenges.map((challenge) => (
-                            <div
-                                key={challenge.id}
-                                onClick={() => onSelectChallenge(challenge.id)}
-                                className={`${challenge.color} ${challenge.hoverColor} rounded-xl p-6 cursor-pointer transition-all duration-200 transform hover:scale-105 shadow-lg hover:shadow-xl`}
-                            >
-                                <div className="text-center">
-                                    <div className="text-4xl mb-4">{challenge.icon}</div>
-                                    <h3 className="text-xl font-bold text-white mb-2">
-                                        {challenge.title}
-                                    </h3>
-                                    <p className="text-white/80 text-sm">
-                                        {challenge.description}
-                                    </p>
-                                    <div className="mt-4 text-white/60 text-xs">
-                                        5-minute timer
-                                    </div>
-                                </div>
-                            </div>
-                        ))}
-                    </div>
-
-                    <div className="mt-8 text-center">
-                        <p className="text-slate-400 text-sm">
-                            You can attempt any challenge. Complete all three to finish the quiz!
-                        </p>
-                    </div>
+                    <button
+                        onClick={onStart}
+                        className="bg-gradient-to-r from-purple-500 via-purple-600 to-purple-700 hover:from-purple-600 hover:via-purple-700 hover:to-purple-800 text-white font-bold py-4 px-8 rounded-2xl transition-all duration-500 hover:scale-105 transform shadow-2xl glow-purple"
+                    >
+                        Start Round 2 Now
+                    </button>
                 </div>
             </div>
         </div>

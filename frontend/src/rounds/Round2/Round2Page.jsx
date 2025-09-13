@@ -9,6 +9,7 @@ import Trace from "./components/Trace";
 import Program from "./components/Program";
 import QuestionSidebar from "./components/QuestionSidebar";
 import GlobalTimer from "./components/GlobalTimer";
+import ChallengeSelection from "./components/ChallengeSelection";
 
 const Round2Page = () => {
     const navigate = useNavigate();
@@ -23,6 +24,8 @@ const Round2Page = () => {
     const [teamProgress, setTeamProgress] = useState(null);
     const [isQuizCompleted, setIsQuizCompleted] = useState(false);
     const [isLoading, setIsLoading] = useState(true);
+    const [isQuizStarted, setIsQuizStarted] = useState(false);
+    const [isSubmitting, setIsSubmitting] = useState(false);
 
     // Check authentication and get team info
     useEffect(() => {
@@ -49,13 +52,11 @@ const Round2Page = () => {
         }
     }, [navigate]);
 
+
     useEffect(() => {
+        // Load team progress to check if quiz has already started/completed
         if (teamId) {
-            apiService.get(`/competition/team/${teamId}`).then((res) => {
-                if (res.data.success) {
-                    setStep(['Round2', 'Round3'].includes(res.data.team.competitionStatus) ? 1 : 0);
-                }
-            });
+            loadTeamProgress(teamId);
         }
     }, [teamId]);
 
@@ -74,10 +75,24 @@ const Round2Page = () => {
         }
     };
 
+    const handleStartRound2 = () => {
+        setIsQuizStarted(true);
+        // Set the first question as current
+        if (teamProgress?.unlockedQuestions.q1) {
+            setCurrentQuestion(0);
+        }
+    };
+
     const handleAptSubmit = async (selected) => {
+        if (isSubmitting) return; // Prevent multiple submissions
+        setIsSubmitting(true);
         try {
             console.log('Submitting aptitude answer:', { teamId, currentQuestion, selected });
-            console.log('Request payload:', { teamId, step: currentQuestion, selected });
+
+            if (!teamId) {
+                throw new Error('No team ID found. Please log in again.');
+            }
+
             const response = await apiService.post("/quiz/apt/answer", { teamId, step: currentQuestion, selected });
             console.log('Aptitude response:', response);
 
@@ -107,14 +122,40 @@ const Round2Page = () => {
             }
         } catch (error) {
             console.error('Error submitting aptitude answer:', error);
-            console.error('Error details:', error.response?.data);
-            console.error('Full error object:', error);
+
+            // Handle specific error cases
+            if (error.message.includes('Question already completed')) {
+                alert('This question has already been completed. Please select an incomplete question.');
+                return;
+            } else if (error.message.includes('Maximum attempts reached')) {
+                alert('Maximum attempts reached for this question. Moving to next challenge.');
+                // Move to next challenge
+                const challengeMap = { 0: 'debug', 1: 'trace', 2: 'program' };
+                const nextChallenge = challengeMap[currentQuestion];
+                if (nextChallenge) {
+                    setCurrentChallenge(nextChallenge);
+                }
+                return;
+            } else if (error.message.includes('Team not found')) {
+                alert('Team not found. Please log in again.');
+                navigate('/login');
+                return;
+            }
+
             alert(`Error submitting answer: ${error.message}`);
+        } finally {
+            setIsSubmitting(false);
         }
     };
 
     const handleCodeSubmit = async (code, timeTaken) => {
+        if (isSubmitting) return; // Prevent multiple submissions
+        setIsSubmitting(true);
         try {
+            if (!teamId) {
+                throw new Error('No team ID found. Please log in again.');
+            }
+
             const response = await apiService.post("/quiz/code/submit", { teamId, challengeType: currentChallenge, code, timeTaken });
 
             // Reload team progress to get updated state
@@ -139,7 +180,26 @@ const Round2Page = () => {
             }
         } catch (error) {
             console.error('Error submitting code:', error);
-            alert(`Error submitting code: ${error.response?.data?.error || error.message}`);
+
+            // Handle specific error cases
+            if (error.message.includes('Question already completed')) {
+                alert('This challenge has already been completed. Please select an incomplete challenge.');
+                return;
+            } else if (error.message.includes('Question is locked')) {
+                alert('This challenge is locked. Complete the prerequisite aptitude question first.');
+                return;
+            } else if (error.message.includes('Team not found')) {
+                alert('Team not found. Please log in again.');
+                navigate('/login');
+                return;
+            } else if (error.message.includes('Invalid challenge type')) {
+                alert('Invalid challenge type. Please try again.');
+                return;
+            }
+
+            alert(`Error submitting code: ${error.message}`);
+        } finally {
+            setIsSubmitting(false);
         }
     };
 
@@ -182,6 +242,7 @@ const Round2Page = () => {
             </div>
         );
     }
+
 
     return (
         <div className="flex h-screen">
@@ -292,7 +353,9 @@ const Round2Page = () => {
             </div>
 
             <div className="flex-1 overflow-y-auto">
-                {currentChallenge ? (
+                {!isQuizStarted ? (
+                    <ChallengeSelection onStart={handleStartRound2} teamProgress={teamProgress} />
+                ) : currentChallenge ? (
                     currentChallenge === 'debug' ? (
                         <Debug onSubmit={handleCodeSubmit} teamId={teamId} />
                     ) : currentChallenge === 'trace' ? (
@@ -314,25 +377,23 @@ const Round2Page = () => {
                                 <p className="text-slate-300 text-lg mb-4">
                                     Thank you for participating in Round 2!
                                 </p>
-                                <div className="text-cyan-400 font-semibold">
+                                <div className="text-cyan-400 font-semibold mb-4">
                                     All challenges completed successfully!
                                 </div>
-                                <div className="mt-4 text-slate-400 text-sm">
-                                    Your responses have been submitted and recorded.
+                                <div className="text-slate-400 text-sm mb-6">
+                                    Your responses have been submitted and recorded. You will be redirected to the team page shortly.
+                                </div>
+                                <div className="bg-yellow-500/20 border border-yellow-400/30 rounded-lg p-4 mb-6">
+                                    <div className="text-yellow-300 font-semibold mb-2">📋 Next Steps:</div>
+                                    <div className="text-yellow-200 text-sm">
+                                        • Return to team page to see your progress<br />
+                                        • Wait for admin to announce Round 2 results<br />
+                                        • If qualified, Round 3 will be unlocked
+                                    </div>
                                 </div>
                                 <button
-                                    onClick={async () => {
-                                        // Update team status to Round2 (team is now in Round 2)
-                                        try {
-                                            await apiService.patch(`/competition/team/${teamId}/status`, {
-                                                competitionStatus: 'Round2'
-                                            });
-                                        } catch (error) {
-                                            console.error('Error updating team status:', error);
-                                        }
-                                        navigate('/team');
-                                    }}
-                                    className="mt-6 bg-cyan-600 hover:bg-cyan-700 text-white font-bold py-2 px-4 rounded-lg transition-all transform hover:scale-105"
+                                    onClick={() => navigate('/team')}
+                                    className="bg-cyan-600 hover:bg-cyan-700 text-white font-bold py-2 px-4 rounded-lg transition-all transform hover:scale-105"
                                 >
                                     Back to Team Page
                                 </button>

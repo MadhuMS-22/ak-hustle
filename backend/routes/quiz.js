@@ -75,31 +75,31 @@ router.post('/apt/answer', async (req, res) => {
 
         let score = 0;
         if (correct) {
-            // Full marks if correct on first attempt, half marks if correct on second attempt
-            score = team.aptitudeAttempts[attemptKey] === 1 ? 10 : 5;
+            // 2 points on first attempt, 1 point on second
+            score = team.aptitudeAttempts[attemptKey] === 1 ? 2 : 1;
             team.scores[questionKey] = score;
             team.completedQuestions[questionKey] = true;
 
             // Sequential unlocking: Only unlock the immediate next question
-            if (step === 0) { // Q1 completed - unlock Q4 (Debug Q1)
+            if (step === 0) { // Q1 completed - unlock Q4 (Debug)
                 team.unlockedQuestions.q4 = true;
-            } else if (step === 1) { // Q2 completed - unlock Q5 (Output Q2)
+            } else if (step === 1) { // Q2 completed - unlock Q5 (Trace)
                 team.unlockedQuestions.q5 = true;
-            } else if (step === 2) { // Q3 completed - unlock Q6 (Program Q3)
+            } else if (step === 2) { // Q3 completed - unlock Q6 (Program)
                 team.unlockedQuestions.q6 = true;
             }
         } else if (team.aptitudeAttempts[attemptKey] === 2) {
-            // Half marks for failed attempts
-            score = 2.5;
+            // No score on a failed second attempt
+            score = 0;
             team.scores[questionKey] = score;
             team.completedQuestions[questionKey] = true;
 
             // Still unlock next question even if failed
-            if (step === 0) { // Q1 completed - unlock Q4 (Debug Q1)
+            if (step === 0) { // Q1 completed - unlock Q4 (Debug)
                 team.unlockedQuestions.q4 = true;
-            } else if (step === 1) { // Q2 completed - unlock Q5 (Output Q2)
+            } else if (step === 1) { // Q2 completed - unlock Q5 (Trace)
                 team.unlockedQuestions.q5 = true;
-            } else if (step === 2) { // Q3 completed - unlock Q6 (Program Q3)
+            } else if (step === 2) { // Q3 completed - unlock Q6 (Program)
                 team.unlockedQuestions.q6 = true;
             }
         }
@@ -209,20 +209,9 @@ Output: 0 1 1 2 3`
         let isCorrect = false;
 
         if (!isAutoSave) {
-            // Simple scoring logic - can be enhanced with actual code evaluation
-            if (challengeType === 'debug') {
-                // Check if the bug is fixed (i < 5 instead of i <= 5)
-                isCorrect = code.includes('i < 5') && !code.includes('i <= 5');
-                score = isCorrect ? 15 : 0;
-            } else if (challengeType === 'trace') {
-                // Check if they provided the correct trace or explanation
-                isCorrect = code.length > 50; // Basic check for substantial answer
-                score = isCorrect ? 15 : 0;
-            } else if (challengeType === 'program') {
-                // Check if they provided a working program
-                isCorrect = code.includes('fibonacci') || code.includes('fib') || code.length > 100;
-                score = isCorrect ? 15 : 0;
-            }
+            // No automatic scoring for coding challenges, score is always 0
+            isCorrect = false;
+            score = 0;
 
             // Update team scores and completion status
             team.scores[questionNumber] = score;
@@ -230,12 +219,10 @@ Output: 0 1 1 2 3`
             team.totalScore = Object.values(team.scores).reduce((sum, score) => sum + score, 0);
 
             // Sequential unlocking: Unlock next aptitude question when coding challenge is completed
-            if (challengeType === 'debug') { // Q4 (Debug Q1) completed - unlock Q2
+            if (challengeType === 'debug') { // Q4 completed - unlock Q2
                 team.unlockedQuestions.q2 = true;
-            } else if (challengeType === 'trace') { // Q5 (Output Q2) completed - unlock Q3
+            } else if (challengeType === 'trace') { // Q5 completed - unlock Q3
                 team.unlockedQuestions.q3 = true;
-            } else if (challengeType === 'program') { // Q6 (Program Q3) completed - quiz finished
-                // No more questions to unlock
             }
 
             // Check if all questions are completed
@@ -244,10 +231,6 @@ Output: 0 1 1 2 3`
                 team.isQuizCompleted = true;
                 team.endTime = new Date();
                 team.totalTimeTaken = Math.floor((team.endTime - team.startTime) / 1000);
-                // Update competition status to Round3 when Round 2 is completed
-                team.competitionStatus = 'Round3';
-                // Update Round 2 score
-                team.scores.round2 = team.totalScore;
             }
 
             await team.save();

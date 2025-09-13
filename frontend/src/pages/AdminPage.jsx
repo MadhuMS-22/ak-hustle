@@ -752,20 +752,24 @@ const AdminPage = () => {
         if (window.confirm('Are you sure you want to reset the announced rounds state? This will unlock all "Announce Results" buttons.')) {
             try {
                 setSelectionLoading(true);
-                const response = await apiService.post('/admin/resetAnnouncedResults');
-                
-                if (response.data.success) {
+
+                // Use adminApiCall for proper admin authentication
+                const response = await adminApiCall('/admin/resetAnnouncedResults', {
+                    method: 'POST'
+                });
+
+                if (response.success) {
                     // Reset frontend state
                     setAnnouncedRounds({
                         round1: false,
                         round2: false,
                         round3: false
                     });
-                    
+
                     // Refresh team data to get updated resultsAnnounced status
                     await fetchTeamManagementData();
-                    
-                    alert(`Announced results reset successfully! ${response.data.data.teamsUpdated} teams updated. All "Announce Results" buttons are now unlocked.`);
+
+                    alert(`Announced results reset successfully! ${response.data.teamsUpdated} teams updated. All "Announce Results" buttons are now unlocked.`);
                 } else {
                     alert('Failed to reset announced results. Please try again.');
                 }

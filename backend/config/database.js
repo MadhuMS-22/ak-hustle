@@ -56,6 +56,12 @@ const connectDB = async (retryCount = 0) => {
             process.exit(0);
         });
 
+        // Keep the process alive
+        process.on('uncaughtException', (err) => {
+            console.error('Uncaught Exception:', err);
+            // Don't exit, just log the error
+        });
+
     } catch (error) {
         console.log("Database connection error occurred");
         console.error('Database connection error:', error.message);

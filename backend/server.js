@@ -14,7 +14,6 @@ import { notFound, errorHandler } from './middleware/errorHandler.js';
 // Import routes
 import authRoutes from './routes/auth.js';
 import competitionRoutes from './routes/competition.js';
-import round2Routes from './routes/round2.js';
 import round3Routes from './routes/round3.js';
 import adminRoutes from './routes/admin.js';
 import adminAuthRoutes from './routes/adminAuth.js';
@@ -28,16 +27,16 @@ const app = express();
 // Security middleware
 app.use(helmet());
 
-// Rate limiting
-const limiter = rateLimit({
-    windowMs: 15 * 60 * 1000, // 15 minutes
-    max: 100, // limit each IP to 100 requests per windowMs
-    message: {
-        success: false,
-        message: 'Too many requests from this IP, please try again later.'
-    }
-});
-app.use('/api/', limiter);
+// Rate limiting - temporarily disabled for testing
+// const limiter = rateLimit({
+//     windowMs: 15 * 60 * 1000, // 15 minutes
+//     max: 100, // limit each IP to 100 requests per windowMs
+//     message: {
+//         success: false,
+//         message: 'Too many requests from this IP, please try again later.'
+//     }
+// });
+// app.use('/api/', limiter);
 
 // CORS configuration - allow multiple frontend ports
 const corsOptions = {
@@ -71,7 +70,6 @@ app.get('/api/health', (req, res) => {
 // API routes
 app.use('/api/auth', authRoutes);
 app.use('/api/competition', competitionRoutes);
-app.use('/api/round2', round2Routes);
 app.use('/api/round3', round3Routes);
 app.use('/api/quiz', quizRoutes);
 app.use('/api/admin', adminAuthRoutes);
