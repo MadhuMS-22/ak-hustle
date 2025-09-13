@@ -3,7 +3,7 @@ import cors from 'cors';
 import helmet from 'helmet';
 import rateLimit from 'express-rate-limit';
 import dotenv from 'dotenv';
-import connectDB from './config/database.js';
+import connectDB, { checkConnection, getConnectionStatus } from './config/database.js';
 
 // Load environment variables
 dotenv.config({ path: './config.env' });
@@ -76,6 +76,27 @@ app.use('/api/round3', round3Routes);
 app.use('/api/quiz', quizRoutes);
 app.use('/api/admin', adminAuthRoutes);
 app.use('/api/admin', adminRoutes);
+
+// Health check endpoint
+app.get('/api/health', (req, res) => {
+    const isConnected = checkConnection();
+    const status = getConnectionStatus();
+    
+    res.status(isConnected ? 200 : 503).json({
+        success: isConnected,
+        message: isConnected ? 'Server is healthy' : 'Database connection issue',
+        database: {
+            connected: isConnected,
+            status: status,
+            timestamp: new Date().toISOString()
+        },
+        server: {
+            uptime: process.uptime(),
+            memory: process.memoryUsage(),
+            version: process.version
+        }
+    });
+});
 
 // 404 handler
 app.use(notFound);
