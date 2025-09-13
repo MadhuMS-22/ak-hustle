@@ -211,29 +211,8 @@ const AdminPage = () => {
             await fetchTeamManagementData();
         } catch (error) {
             console.error('Error fetching data:', error);
-            // Show empty state instead of mock data
-            setTeams([]);
-            setStats({
-                totalTeams: 0,
-                registeredTeams: 0,
-                round1Completed: 0,
-                round2Completed: 0,
-                round3Completed: 0
-            });
-            setTeamManagementData({
-                teams: [],
-                stats: {
-                    totalTeams: 0,
-                    registered: 0,
-                    round1: 0,
-                    round2: 0,
-                    round3: 0,
-                    eliminated: 0,
-                    selected: 0,
-                    hasCompletedCycle: 0,
-                    resultsAnnounced: 0
-                }
-            });
+            // Don't clear existing data on API failure - keep current data
+            console.log('API failed, keeping existing data');
         } finally {
             setLoading(false);
             setRound3Loading(false);
@@ -584,14 +563,17 @@ const AdminPage = () => {
 
                 // Check which rounds have been announced based on team data
                 const teams = response.data.teams;
+                // Round 1 is announced if any team has moved past Round1 status with resultsAnnounced
                 const round1Announced = teams.some(team =>
-                    team.competitionStatus === 'Round1' && team.resultsAnnounced
+                    team.resultsAnnounced && ['Round2', 'Round3', 'Selected', 'Eliminated'].includes(team.competitionStatus)
                 );
+                // Round 2 is announced if any team has moved past Round2 status with resultsAnnounced
                 const round2Announced = teams.some(team =>
-                    team.competitionStatus === 'Round2' && team.resultsAnnounced
+                    team.resultsAnnounced && ['Round3', 'Selected', 'Eliminated'].includes(team.competitionStatus)
                 );
+                // Round 3 is announced if any team has moved to Selected or Eliminated status with resultsAnnounced
                 const round3Announced = teams.some(team =>
-                    team.competitionStatus === 'Round3' && team.resultsAnnounced
+                    team.resultsAnnounced && ['Selected', 'Eliminated'].includes(team.competitionStatus)
                 );
 
                 setAnnouncedRounds({
@@ -609,21 +591,8 @@ const AdminPage = () => {
                 round3: false
             });
 
-            // Show empty state instead of null
-            setTeamManagementData({
-                teams: [],
-                stats: {
-                    totalTeams: 0,
-                    registered: 0,
-                    round1: 0,
-                    round2: 0,
-                    round3: 0,
-                    eliminated: 0,
-                    selected: 0,
-                    hasCompletedCycle: 0,
-                    resultsAnnounced: 0
-                }
-            });
+            // Don't clear existing data on API failure - keep current team list
+            console.log('API failed, keeping existing team data');
         } finally {
             setDataLoading(false);
         }
@@ -753,23 +722,23 @@ const AdminPage = () => {
             if (window.confirm('Are you sure you want to reset ALL teams? This will clear all progress and set all teams back to "Registered" status. This action cannot be undone.')) {
                 setSelectionLoading(true);
 
-                // Reset all teams one by one
-                const resetPromises = teamManagementData.teams.map(team =>
-                    adminApiCall(`/admin/resetTeam/${team._id}`, { method: 'POST' })
-                );
+                // Use the new bulk reset endpoint
+                const response = await adminApiCall('/admin/resetAllTeams', { method: 'POST' });
 
-                await Promise.all(resetPromises);
+                if (response.success) {
+                    // Reset announced rounds state
+                    setAnnouncedRounds({
+                        round1: false,
+                        round2: false,
+                        round3: false
+                    });
 
-                // Reset announced rounds state
-                setAnnouncedRounds({
-                    round1: false,
-                    round2: false,
-                    round3: false
-                });
-
-                alert('All teams have been reset successfully! All teams are now back to "Registered" status.');
-                setSelectedTeams([]);
-                await fetchTeamManagementData();
+                    alert(`All teams have been reset successfully! ${response.data.teamsReset} teams are now back to "Registered" status.`);
+                    setSelectedTeams([]);
+                    await fetchTeamManagementData();
+                } else {
+                    alert('Error resetting all teams. Please try again.');
+                }
             }
         } catch (error) {
             console.error('Error resetting all teams:', error);

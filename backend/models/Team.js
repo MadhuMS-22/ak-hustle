@@ -99,7 +99,14 @@ const teamSchema = new mongoose.Schema({
         total: {
             type: Number,
             default: 0
-        }
+        },
+        // Individual question scores for Round 2
+        q1: { type: Number, default: 0 },
+        q2: { type: Number, default: 0 },
+        q3: { type: Number, default: 0 },
+        q4: { type: Number, default: 0 },
+        q5: { type: Number, default: 0 },
+        q6: { type: Number, default: 0 }
     },
     // Round 3 specific fields
     round3Score: {
@@ -177,14 +184,6 @@ const teamSchema = new mongoose.Schema({
         q4: { type: Boolean, default: false },
         q5: { type: Boolean, default: false },
         q6: { type: Boolean, default: false }
-    },
-    scores: {
-        q1: { type: Number, default: 0 },
-        q2: { type: Number, default: 0 },
-        q3: { type: Number, default: 0 },
-        q4: { type: Number, default: 0 },
-        q5: { type: Number, default: 0 },
-        q6: { type: Number, default: 0 }
     },
     aptitudeAttempts: {
         q1: { type: Number, default: 0 },

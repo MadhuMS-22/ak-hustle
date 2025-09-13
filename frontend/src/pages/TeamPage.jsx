@@ -39,87 +39,101 @@ const TeamPage = () => {
     setTeamData(contextTeamData)
     setTeamName(contextTeamData.teamName || 'Unknown Team')
     // Fetch real-time team data from backend
-    fetchTeamData(contextTeamData._id)
+    fetchTeamData(contextTeamData._id, true)
   }, [isAuthenticated, contextTeamData, navigate, authLoading])
 
   // Fetch team data from backend
-  const fetchTeamData = async (teamId) => {
+  const fetchTeamData = async (teamId, showLoading = false) => {
     try {
-      setLoading(true)
+      if (showLoading) {
+        setLoading(true)
+      }
 
       // Fetch team details with current status
       const teamResponse = await apiService.get(`/competition/team/${teamId}`)
       if (teamResponse.success) {
         const team = teamResponse.data.team
-        setTeamData(team)
 
-        // Update rounds based on team's competition status
+        // Only update if data has actually changed
+        if (!teamData || JSON.stringify(team) !== JSON.stringify(teamData)) {
+          setTeamData(team)
 
-        // Determine round statuses based on competition status and results announcement
-        const updatedRounds = {
-          round1: {
-            status: team.competitionStatus === 'Registered' ? 'pending' :
-              team.competitionStatus === 'Round1' ? 'available' :
-                ['Round2', 'Round3', 'Selected', 'Eliminated'].includes(team.competitionStatus) ? 'completed' : 'locked',
-            result: (team.resultsAnnounced && team.competitionStatus !== 'Registered' && team.competitionStatus !== 'Round1') ?
-              (['Round2', 'Round3', 'Selected'].includes(team.competitionStatus) ? true : false) : null,
-            score: team.scores?.round1 || null,
-            announced: team.resultsAnnounced || false,
-            qualified: (team.resultsAnnounced && team.competitionStatus !== 'Registered' && team.competitionStatus !== 'Round1') ?
-              (['Round2', 'Round3', 'Selected'].includes(team.competitionStatus) ? true : false) : null
-          },
-          round2: {
-            status: team.competitionStatus === 'Round2' ? 'available' :
-              ['Round3', 'Selected'].includes(team.competitionStatus) ? 'completed' :
-                team.competitionStatus === 'Eliminated' ? 'completed' : 'locked',
-            result: (team.resultsAnnounced && team.competitionStatus !== 'Round2') ?
-              (['Round3', 'Selected'].includes(team.competitionStatus) ? true : false) : null,
-            score: team.scores?.round2 || null,
-            announced: team.resultsAnnounced || false,
-            qualified: (team.resultsAnnounced && team.competitionStatus !== 'Round2') ?
-              (['Round3', 'Selected'].includes(team.competitionStatus) ? true : false) : null
-          },
-          round3: {
-            status: team.competitionStatus === 'Round3' ? 'available' :
-              team.competitionStatus === 'Selected' ? 'completed' :
-                team.competitionStatus === 'Eliminated' ? 'completed' : 'locked',
-            result: (team.resultsAnnounced && team.competitionStatus !== 'Round3') ?
-              (team.competitionStatus === 'Selected' ? true : false) : null,
-            score: team.scores?.round3 || null,
-            announced: team.resultsAnnounced || false,
-            qualified: (team.resultsAnnounced && team.competitionStatus !== 'Round3') ?
-              (team.competitionStatus === 'Selected' ? true : false) : null
+          // Determine round statuses based on competition status and results announcement
+          const updatedRounds = {
+            round1: {
+              status: team.competitionStatus === 'Registered' ? 'pending' :
+                team.competitionStatus === 'Round1' ? 'available' :
+                  ['Round2', 'Round3', 'Selected', 'Eliminated'].includes(team.competitionStatus) ? 'completed' : 'locked',
+              result: (team.resultsAnnounced && team.competitionStatus !== 'Registered' && team.competitionStatus !== 'Round1') ?
+                (['Round2', 'Round3', 'Selected'].includes(team.competitionStatus) ? true : false) : null,
+              score: team.scores?.round1 || null,
+              announced: team.resultsAnnounced || false,
+              qualified: (team.resultsAnnounced && team.competitionStatus !== 'Registered' && team.competitionStatus !== 'Round1') ?
+                (['Round2', 'Round3', 'Selected'].includes(team.competitionStatus) ? true : false) : null
+            },
+            round2: {
+              status: team.competitionStatus === 'Round2' ? 'available' :
+                ['Round3', 'Selected'].includes(team.competitionStatus) ? 'completed' :
+                  team.competitionStatus === 'Eliminated' ? 'completed' : 'locked',
+              result: (team.resultsAnnounced && team.competitionStatus !== 'Round2') ?
+                (['Round3', 'Selected'].includes(team.competitionStatus) ? true : false) : null,
+              score: team.scores?.round2 || null,
+              announced: team.resultsAnnounced || false,
+              qualified: (team.resultsAnnounced && team.competitionStatus !== 'Round2') ?
+                (['Round3', 'Selected'].includes(team.competitionStatus) ? true : false) : null
+            },
+            round3: {
+              status: team.competitionStatus === 'Round3' ? 'available' :
+                team.competitionStatus === 'Selected' ? 'completed' :
+                  team.competitionStatus === 'Eliminated' ? 'completed' : 'locked',
+              result: (team.resultsAnnounced && team.competitionStatus !== 'Round3') ?
+                (team.competitionStatus === 'Selected' ? true : false) : null,
+              score: team.scores?.round3 || null,
+              announced: team.resultsAnnounced || false,
+              qualified: (team.resultsAnnounced && team.competitionStatus !== 'Round3') ?
+                (team.competitionStatus === 'Selected' ? true : false) : null
+            }
           }
-        }
 
-        setRounds(updatedRounds)
+          setRounds(updatedRounds)
+        }
       }
 
-      // Fetch round codes for verification
-      const codesResponse = await apiService.get('/competition/round-codes')
-      if (codesResponse.success) {
-        setRoundCodes(codesResponse.data.roundCodes)
+      // Fetch round codes for verification (only if not already loaded)
+      if (!roundCodes.round2 || !roundCodes.round3) {
+        const codesResponse = await apiService.get('/competition/round-codes')
+        if (codesResponse.success) {
+          setRoundCodes(codesResponse.data.roundCodes)
+        }
       }
 
     } catch (error) {
       console.error('Error fetching team data:', error)
       // Fallback to localStorage data if API fails
     } finally {
-      setLoading(false)
+      if (showLoading) {
+        setLoading(false)
+      }
     }
   }
 
   // Set up real-time updates
   useEffect(() => {
     if (teamData?._id) {
-      // Poll for updates every 10 seconds to catch admin changes
-      const interval = setInterval(() => {
-        fetchTeamData(teamData._id)
-      }, 10000)
+      // Only poll if team is in an active state (not completed/eliminated)
+      const shouldPoll = teamData.competitionStatus &&
+        !['Selected', 'Eliminated'].includes(teamData.competitionStatus)
 
-      return () => clearInterval(interval)
+      if (shouldPoll) {
+        // Poll for updates every 30 seconds to catch admin changes
+        const interval = setInterval(() => {
+          fetchTeamData(teamData._id, false)
+        }, 30000)
+
+        return () => clearInterval(interval)
+      }
     }
-  }, [teamData?._id])
+  }, [teamData?._id, teamData?.competitionStatus])
 
   const handleLogout = () => {
     // Use the logout method from AuthContext
@@ -322,10 +336,10 @@ const TeamPage = () => {
             <div className='grid grid-cols-1 lg:grid-cols-3 gap-6'>
               {/* Round 1 */}
               <div className={classNames('p-8 rounded-3xl text-center glass-dark shadow-2xl w-full flex flex-col justify-center items-center gap-6 transition-all duration-500 hover:scale-105 hover:glow-purple', {
-                "bg-green-600/40 border-green-400/50": getRoundStatus(rounds.round1, 1) === 'passed' && rounds.round1.announced,
-                "bg-red-600/40 border-red-400/50": getRoundStatus(rounds.round1, 1) === 'failed' && rounds.round1.announced,
-                "bg-orange-600/20 border-orange-400/30": getRoundStatus(rounds.round1, 1) === 'pending' || getRoundStatus(rounds.round1, 1) === 'available' || (getRoundStatus(rounds.round1, 1) === 'passed' && !rounds.round1.announced),
-                "bg-gray-600/20 border-gray-400/30": getRoundStatus(rounds.round1, 1) === 'locked'
+                "bg-green-600/40 border-green-400/50": rounds.round1.status === 'completed' && rounds.round1.result === true && rounds.round1.announced,
+                "bg-red-600/40 border-red-400/50": rounds.round1.status === 'completed' && rounds.round1.result === false && rounds.round1.announced,
+                "bg-orange-600/20 border-orange-400/30": rounds.round1.status === 'pending' || rounds.round1.status === 'available' || (rounds.round1.status === 'completed' && !rounds.round1.announced),
+                "bg-gray-600/20 border-gray-400/30": rounds.round1.status === 'locked'
               })}>
                 <div className='flex flex-col items-center gap-4'>
                   <div className="p-6 rounded-full bg-gradient-to-br from-purple-500 to-purple-600 text-white backdrop-blur-md glow-purple">
@@ -333,30 +347,24 @@ const TeamPage = () => {
                   </div>
                   <h3 className='text-2xl font-bold text-white'>Round 1: Aptitude</h3>
                   <p className='text-sm font-medium text-gray-300 text-center leading-relaxed'>
-                    {getRoundMessage(rounds.round1, 1)}
+                    {rounds.round1.status === 'pending' ? 'You are registered. Waiting for Round 1 to start.' :
+                      rounds.round1.status === 'available' ? 'You are in Round 1. Please complete your task.' :
+                        rounds.round1.status === 'completed' && !rounds.round1.announced ? 'Round 1 completed. Waiting for results to be announced.' :
+                          rounds.round1.status === 'completed' && rounds.round1.announced ?
+                            (rounds.round1.result === true ? 'Congratulations! You qualified for Round 2! Results have been announced.' : 'Round 1 completed. Better luck next time! Results have been announced.') :
+                            'Locked. Complete previous round to unlock.'}
                   </p>
                 </div>
-                {getRoundStatus(rounds.round1, 1) === 'passed' || getRoundStatus(rounds.round1, 1) === 'failed' ? (
-                  rounds.round1.announced ? (
-                    <div className="text-center">
-                      <div className="text-white text-lg font-bold mb-1">
-                        {getRoundStatus(rounds.round1, 1) === 'passed' ? '✅ QUALIFIED!' : '❌ NOT QUALIFIED'}
-                      </div>
-                      <div className="text-gray-200 text-sm">
-                        Results announced
-                      </div>
+                {rounds.round1.status === 'completed' && rounds.round1.announced ? (
+                  <div className="text-center">
+                    <div className="text-white text-lg font-bold mb-1">
+                      {rounds.round1.result === true ? '✅ QUALIFIED!' : '❌ NOT QUALIFIED'}
                     </div>
-                  ) : (
-                    <div className="text-center">
-                      <div className="text-orange-300 text-lg font-bold mb-1">
-                        Round 1 Completed
-                      </div>
-                      <div className="text-gray-300 text-sm">
-                        Waiting for results...
-                      </div>
+                    <div className="text-gray-200 text-sm">
+                      Results announced
                     </div>
-                  )
-                ) : getRoundStatus(rounds.round1, 1) === 'available' ? (
+                  </div>
+                ) : rounds.round1.status === 'available' ? (
                   <button
                     onClick={() => handleStartRound(1)}
                     className='bg-gradient-to-r from-purple-500 via-purple-600 to-purple-700 hover:from-purple-600 hover:via-purple-700 hover:to-purple-800 text-white font-semibold py-4 px-8 rounded-2xl transition-all duration-500 hover:scale-105 shadow-xl glow-purple'
@@ -368,17 +376,17 @@ const TeamPage = () => {
                     disabled
                     className='bg-gray-500/30 text-gray-400 font-semibold py-3 px-6 rounded-xl cursor-not-allowed backdrop-blur-sm border border-gray-500/30'
                   >
-                    {getRoundStatus(rounds.round1, 1) === 'pending' ? 'Waiting...' : 'Locked'}
+                    {rounds.round1.status === 'pending' ? 'Waiting...' : 'Locked'}
                   </button>
                 )}
               </div>
 
               {/* Round 2 */}
               <div className={classNames('p-8 rounded-3xl text-center glass-dark shadow-2xl w-full flex flex-col justify-center items-center gap-6 transition-all duration-500 hover:scale-105 hover:glow-blue', {
-                "bg-green-600/40 border-green-400/50": getRoundStatus(rounds.round2, 2) === 'passed' && rounds.round2.announced,
-                "bg-red-600/40 border-red-400/50": getRoundStatus(rounds.round2, 2) === 'failed' && rounds.round2.announced,
-                "bg-orange-600/20 border-orange-400/30": getRoundStatus(rounds.round2, 2) === 'available' || (getRoundStatus(rounds.round2, 2) === 'passed' && !rounds.round2.announced),
-                "bg-gray-600/20 border-gray-400/30": getRoundStatus(rounds.round2, 2) === 'locked'
+                "bg-green-600/40 border-green-400/50": rounds.round2.status === 'completed' && rounds.round2.result === true && rounds.round2.announced,
+                "bg-red-600/40 border-red-400/50": rounds.round2.status === 'completed' && rounds.round2.result === false && rounds.round2.announced,
+                "bg-orange-600/20 border-orange-400/30": rounds.round2.status === 'available' || (rounds.round2.status === 'completed' && !rounds.round2.announced),
+                "bg-gray-600/20 border-gray-400/30": rounds.round2.status === 'locked'
               })}>
                 <div className='flex flex-col items-center gap-4'>
                   <div className="p-6 rounded-full bg-gradient-to-br from-purple-500 to-purple-600 text-white backdrop-blur-md glow-purple">
@@ -389,18 +397,18 @@ const TeamPage = () => {
                     {getRoundMessage(rounds.round2, 2)}
                   </p>
                 </div>
-                {getRoundStatus(rounds.round2, 2) === 'locked' ? (
+                {rounds.round2.status === 'locked' ? (
                   <button
                     disabled
                     className='bg-gray-500/30 text-gray-400 font-semibold py-3 px-6 rounded-xl cursor-not-allowed backdrop-blur-sm border border-gray-500/30'
                   >
                     Locked
                   </button>
-                ) : getRoundStatus(rounds.round2, 2) === 'passed' || getRoundStatus(rounds.round2, 2) === 'failed' ? (
+                ) : rounds.round2.status === 'completed' ? (
                   rounds.round2.announced ? (
                     <div className="text-center">
                       <div className="text-white text-lg font-bold mb-1">
-                        {getRoundStatus(rounds.round2, 2) === 'passed' ? '✅ QUALIFIED!' : '❌ NOT QUALIFIED'}
+                        {rounds.round2.result === true ? '✅ QUALIFIED!' : '❌ NOT QUALIFIED'}
                       </div>
                       <div className="text-gray-200 text-sm">
                         Results announced
@@ -428,10 +436,10 @@ const TeamPage = () => {
 
               {/* Round 3 */}
               <div className={classNames('p-8 rounded-3xl text-center glass-dark shadow-2xl w-full flex flex-col justify-center items-center gap-6 transition-all duration-500 hover:scale-105 hover:glow-purple', {
-                "bg-green-600/40 border-green-400/50": getRoundStatus(rounds.round3, 3) === 'passed' && rounds.round3.announced,
-                "bg-red-600/40 border-red-400/50": getRoundStatus(rounds.round3, 3) === 'failed' && rounds.round3.announced,
-                "bg-orange-600/20 border-orange-400/30": getRoundStatus(rounds.round3, 3) === 'available' || (getRoundStatus(rounds.round3, 3) === 'passed' && !rounds.round3.announced),
-                "bg-gray-600/20 border-gray-400/30": getRoundStatus(rounds.round3, 3) === 'locked'
+                "bg-green-600/40 border-green-400/50": rounds.round3.status === 'completed' && rounds.round3.result === true && rounds.round3.announced,
+                "bg-red-600/40 border-red-400/50": rounds.round3.status === 'completed' && rounds.round3.result === false && rounds.round3.announced,
+                "bg-orange-600/20 border-orange-400/30": rounds.round3.status === 'available' || (rounds.round3.status === 'completed' && !rounds.round3.announced),
+                "bg-gray-600/20 border-gray-400/30": rounds.round3.status === 'locked'
               })}>
                 <div className='flex flex-col items-center gap-4'>
                   <div className="p-6 rounded-full bg-gradient-to-br from-purple-500 to-purple-600 text-white backdrop-blur-md glow-purple">
@@ -442,18 +450,18 @@ const TeamPage = () => {
                     {getRoundMessage(rounds.round3, 3)}
                   </p>
                 </div>
-                {getRoundStatus(rounds.round3, 3) === 'locked' ? (
+                {rounds.round3.status === 'locked' ? (
                   <button
                     disabled
                     className='bg-gray-500/30 text-gray-400 font-semibold py-3 px-6 rounded-xl cursor-not-allowed backdrop-blur-sm border border-gray-500/30'
                   >
                     Locked
                   </button>
-                ) : getRoundStatus(rounds.round3, 3) === 'passed' || getRoundStatus(rounds.round3, 3) === 'failed' ? (
+                ) : rounds.round3.status === 'completed' ? (
                   rounds.round3.announced ? (
                     <div className="text-center">
                       <div className="text-white text-lg font-bold mb-1">
-                        {getRoundStatus(rounds.round3, 3) === 'passed' ? '✅ SELECTED!' : '❌ NOT SELECTED'}
+                        {rounds.round3.result === true ? '✅ SELECTED!' : '❌ NOT SELECTED'}
                       </div>
                       <div className="text-gray-200 text-sm">
                         Results announced

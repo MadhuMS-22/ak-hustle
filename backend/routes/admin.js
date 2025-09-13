@@ -563,105 +563,6 @@ router.delete('/round-codes/:round', adminAuth, resetRoundCode);
 router.get('/round2/data', adminAuth, getRound2AdminData);
 router.get('/round2/team/:teamId/submissions', adminAuth, getTeamRound2Submissions);
 
-// @desc    Reset team progress (Admin only)
-// @route   POST /api/admin/resetTeam/:teamId
-// @access  Private (Admin)
-const resetTeam = async (req, res) => {
-    try {
-        const { teamId } = req.params;
-
-        const team = await Team.findById(teamId);
-        if (!team) {
-            return res.status(404).json({
-                success: false,
-                message: 'Team not found'
-            });
-        }
-
-        // Reset team progress
-        const resetData = {
-            competitionStatus: 'Registered',
-            hasCompletedCycle: false,
-            resultsAnnounced: false,
-            // Reset scores
-            scores: {
-                round1: 0,
-                round2: 0,
-                round3: 0,
-                total: 0
-            },
-            // Reset Round 2 specific fields
-            startTime: null,
-            endTime: null,
-            totalTimeTaken: 0,
-            isQuizCompleted: false,
-            totalScore: 0,
-            unlockedQuestions: {
-                q1: true,
-                q2: false,
-                q3: false,
-                q4: false,
-                q5: false,
-                q6: false
-            },
-            completedQuestions: {
-                q1: false,
-                q2: false,
-                q3: false,
-                q4: false,
-                q5: false,
-                q6: false
-            },
-            scores: {
-                q1: 0,
-                q2: 0,
-                q3: 0,
-                q4: 0,
-                q5: 0,
-                q6: 0
-            },
-            aptitudeAttempts: {
-                q1: 0,
-                q2: 0,
-                q3: 0
-            },
-            // Reset Round 3 specific fields
-            round3Score: 0,
-            round3Time: 0,
-            round3Program: '',
-            round3QuestionOrder: null,
-            round3QuestionOrderName: '',
-            round3QuestionResults: [],
-            round3IndividualScores: [],
-            round3Completed: false,
-            round3SubmittedAt: null
-        };
-
-        const updatedTeam = await Team.findByIdAndUpdate(
-            teamId,
-            resetData,
-            { new: true }
-        ).select('-password');
-
-        // Delete all submissions for this team
-        await Submission.deleteMany({ team: teamId });
-
-        res.status(200).json({
-            success: true,
-            message: 'Team progress reset successfully',
-            data: {
-                team: updatedTeam
-            }
-        });
-
-    } catch (error) {
-        console.error('Reset team error:', error);
-        res.status(500).json({
-            success: false,
-            message: 'Server error while resetting team progress'
-        });
-    }
-};
 
 // @desc    Update team status (Admin only)
 // @route   PATCH /api/admin/updateStatus/:teamId
@@ -907,8 +808,168 @@ const getTeamManagementData = async (req, res) => {
     }
 };
 
+// @desc    Reset individual team (Admin only)
+// @route   POST /api/admin/resetTeam/:teamId
+// @access  Private (Admin)
+const resetTeam = async (req, res) => {
+    try {
+        const { teamId } = req.params;
+
+        // Reset team to initial state
+        const updatedTeam = await Team.findByIdAndUpdate(
+            teamId,
+            {
+                competitionStatus: 'Registered',
+                hasCompletedCycle: false,
+                resultsAnnounced: false,
+                scores: {
+                    round1: 0,
+                    round2: 0,
+                    round3: 0,
+                    total: 0,
+                    q1: 0,
+                    q2: 0,
+                    q3: 0,
+                    q4: 0,
+                    q5: 0,
+                    q6: 0
+                },
+                // Reset Round 2 specific fields
+                startTime: null,
+                endTime: null,
+                totalTimeTaken: 0,
+                isQuizCompleted: false,
+                totalScore: 0,
+                unlockedQuestions: {
+                    q1: true,
+                    q2: false,
+                    q3: false,
+                    q4: false,
+                    q5: false,
+                    q6: false
+                },
+                completedQuestions: {
+                    q1: false,
+                    q2: false,
+                    q3: false,
+                    q4: false,
+                    q5: false,
+                    q6: false
+                },
+                aptitudeAttempts: {
+                    q1: 0,
+                    q2: 0,
+                    q3: 0
+                }
+            },
+            { new: true }
+        ).select('-password');
+
+        if (!updatedTeam) {
+            return res.status(404).json({
+                success: false,
+                message: 'Team not found'
+            });
+        }
+
+        // Delete all submissions for this team
+        await Submission.deleteMany({ team: teamId });
+
+        res.status(200).json({
+            success: true,
+            message: 'Team reset successfully',
+            data: {
+                team: updatedTeam
+            }
+        });
+
+    } catch (error) {
+        console.error('Reset team error:', error);
+        res.status(500).json({
+            success: false,
+            message: 'Server error while resetting team'
+        });
+    }
+};
+
+// @desc    Reset all teams (Admin only)
+// @route   POST /api/admin/resetAllTeams
+// @access  Private (Admin)
+const resetAllTeams = async (req, res) => {
+    try {
+        // Reset all teams to initial state in a single operation
+        const result = await Team.updateMany(
+            { isActive: true },
+            {
+                competitionStatus: 'Registered',
+                hasCompletedCycle: false,
+                resultsAnnounced: false,
+                scores: {
+                    round1: 0,
+                    round2: 0,
+                    round3: 0,
+                    total: 0,
+                    q1: 0,
+                    q2: 0,
+                    q3: 0,
+                    q4: 0,
+                    q5: 0,
+                    q6: 0
+                },
+                // Reset Round 2 specific fields
+                startTime: null,
+                endTime: null,
+                totalTimeTaken: 0,
+                isQuizCompleted: false,
+                totalScore: 0,
+                unlockedQuestions: {
+                    q1: true,
+                    q2: false,
+                    q3: false,
+                    q4: false,
+                    q5: false,
+                    q6: false
+                },
+                completedQuestions: {
+                    q1: false,
+                    q2: false,
+                    q3: false,
+                    q4: false,
+                    q5: false,
+                    q6: false
+                },
+                aptitudeAttempts: {
+                    q1: 0,
+                    q2: 0,
+                    q3: 0
+                }
+            }
+        );
+
+        // Delete all submissions
+        await Submission.deleteMany({});
+
+        res.status(200).json({
+            success: true,
+            message: 'All teams reset successfully',
+            data: {
+                teamsReset: result.modifiedCount,
+                submissionsDeleted: 'All submissions cleared'
+            }
+        });
+
+    } catch (error) {
+        console.error('Reset all teams error:', error);
+        res.status(500).json({
+            success: false,
+            message: 'Server error while resetting all teams'
+        });
+    }
+};
+
 // Apply new routes
 router.post('/resetTeam/:teamId', adminAuth, resetTeam);
+router.post('/resetAllTeams', adminAuth, resetAllTeams);
 router.patch('/updateStatus/:teamId', adminAuth, updateTeamStatusNew);
 router.post('/announceResults', adminAuth, announceResults);
 router.get('/teamManagement', adminAuth, getTeamManagementData);
