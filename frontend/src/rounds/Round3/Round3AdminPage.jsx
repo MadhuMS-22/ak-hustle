@@ -174,9 +174,9 @@ const Round3AdminPage = () => {
 
     if (loading) {
         return (
-            <div className="min-h-screen bg-gray-900 text-gray-100 font-sans p-4 flex flex-col items-center justify-center">
+            <div className="min-h-screen bg-gradient-to-br from-gray-900 via-purple-900 to-indigo-900 text-gray-100 font-sans p-4 flex flex-col items-center justify-center">
                 <div className="text-center text-white">
-                    <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-400 mx-auto mb-4"></div>
+                    <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-400 mx-auto mb-4"></div>
                     Loading Round 3 Results...
                 </div>
             </div>
@@ -185,13 +185,13 @@ const Round3AdminPage = () => {
 
     if (error) {
         return (
-            <div className="min-h-screen bg-gray-900 text-gray-100 font-sans p-4 flex flex-col items-center justify-center">
+            <div className="min-h-screen bg-gradient-to-br from-gray-900 via-purple-900 to-indigo-900 text-gray-100 font-sans p-4 flex flex-col items-center justify-center">
                 <div className="text-center text-red-500">
                     <h2 className="text-2xl font-bold mb-4">Error Loading Admin Page</h2>
                     <p className="mb-4">Error: {error}</p>
                     <button
                         onClick={() => navigate('/admin')}
-                        className="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2 px-4 rounded-full transition duration-300 transform hover:scale-105"
+                        className="bg-gradient-to-r from-purple-500 via-purple-600 to-purple-700 hover:from-purple-600 hover:via-purple-700 hover:to-purple-800 text-white font-bold py-2 px-4 rounded-full transition duration-500 transform hover:scale-105 shadow-xl glow-purple"
                     >
                         Back to Admin
                     </button>
@@ -202,9 +202,9 @@ const Round3AdminPage = () => {
 
     if (showPrograms && selectedTeam) {
         return (
-            <div className="min-h-screen bg-gray-900 text-gray-100 font-sans p-4 flex flex-col items-center">
-                <div className="w-full max-w-6xl p-8 bg-gray-800 rounded-xl shadow-lg mt-10">
-                    <h1 className="text-4xl md:text-5xl font-extrabold text-center mb-6 text-indigo-400">
+            <div className="min-h-screen bg-gradient-to-br from-gray-900 via-purple-900 to-indigo-900 text-gray-100 font-sans p-4 flex flex-col items-center">
+                <div className="w-full max-w-6xl p-8 glass-dark rounded-xl shadow-2xl mt-10">
+                    <h1 className="text-4xl md:text-5xl font-extrabold text-center mb-6 bg-gradient-to-r from-white via-purple-300 to-blue-300 bg-clip-text text-transparent drop-shadow-2xl">
                         {selectedTeam.teamName} - All Programs
                     </h1>
 

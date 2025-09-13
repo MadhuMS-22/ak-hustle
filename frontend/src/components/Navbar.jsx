@@ -1,50 +1,35 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
+import { useAuth } from '../contexts/AuthContext';
 
 const Navbar = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
-  const [teamData, setTeamData] = useState(null);
-
-  // Check if user is logged in
-  useEffect(() => {
-    const storedTeam = localStorage.getItem('hustle_team');
-    if (storedTeam) {
-      const parsedTeamData = JSON.parse(storedTeam);
-      setTeamData(parsedTeamData);
-      setIsLoggedIn(true);
-    } else {
-      setIsLoggedIn(false);
-      setTeamData(null);
-    }
-  }, []);
+  const { isAuthenticated, teamData, logout } = useAuth();
 
   const handleLogout = () => {
-    localStorage.removeItem('hustle_team');
-    setIsLoggedIn(false);
-    setTeamData(null);
+    logout();
     navigate('/');
   };
 
   return (
-    <header className="fixed top-0 left-0 w-full bg-black bg-opacity-20 backdrop-blur-md z-50 shadow-lg border-b border-white border-opacity-10 transition-all duration-300">
+    <header className="fixed top-0 left-0 w-full glass-dark z-50 shadow-2xl border-b border-purple-400/30 transition-all duration-300">
       <nav className="container mx-auto px-4 sm:px-6 lg:px-8 py-4">
         <div className="flex justify-between items-center">
           {/* Logo */}
           <div className="flex items-center space-x-2">
-            <button onClick={() => navigate('/')} className="flex items-center space-x-2 group">
-              <div className="p-2 rounded-full bg-gradient-to-br from-purple-500 to-purple-600 bg-opacity-20 text-purple-300 shadow-lg flex items-center justify-center backdrop-blur-md border border-white border-opacity-20 group-hover:scale-110 transition-transform duration-300">
+            <button onClick={() => navigate('/')} className="flex items-center space-x-3 group">
+              <div className="p-3 rounded-full bg-gradient-to-br from-purple-500 to-purple-600 text-white shadow-xl flex items-center justify-center backdrop-blur-md group-hover:scale-110 transition-all duration-500 glow-purple">
                 <img src="https://placehold.co/24x24/E9D5FF/6D28D9?text=</>" alt="Hustle Logo" className="h-6 w-6" />
               </div>
-              <span className="text-xl font-bold text-white group-hover:text-purple-200 transition-colors duration-300">Hustle</span>
+              <span className="text-2xl font-bold text-white group-hover:text-purple-300 transition-colors duration-300 bg-gradient-to-r from-white to-purple-200 bg-clip-text text-transparent">Hustle</span>
             </button>
           </div>
 
           {/* Desktop Navigation Links */}
           <div className="hidden md:flex items-center space-x-4">
-            {isLoggedIn ? (
+            {isAuthenticated ? (
               <>
                 <span className="text-sm text-gray-300">
                   Welcome, {teamData?.teamName || 'Team'}!
@@ -60,13 +45,13 @@ const Navbar = () => {
               <>
                 <button
                   onClick={() => navigate('/login')}
-                  className="px-4 py-2 text-sm font-medium text-gray-300 hover:text-white transition-all duration-300 hover:bg-white hover:bg-opacity-10 rounded-lg backdrop-blur-md"
+                  className="px-6 py-3 text-sm font-medium text-gray-300 hover:text-white transition-all duration-300 hover:bg-purple-500/20 rounded-xl backdrop-blur-md border border-purple-400/30 hover:border-purple-400/50"
                 >
                   Login
                 </button>
                 <button
                   onClick={() => navigate('/register')}
-                  className="px-6 py-2 bg-gradient-to-r from-purple-600 to-purple-700 text-white text-sm font-bold rounded-xl shadow-lg hover:from-purple-700 hover:to-purple-800 transition-all duration-300 hover:scale-105 transform backdrop-blur-md"
+                  className="px-8 py-3 bg-gradient-to-r from-purple-500 via-purple-600 to-purple-700 text-white text-sm font-bold rounded-xl shadow-xl hover:from-purple-600 hover:via-purple-700 hover:to-purple-800 transition-all duration-500 hover:scale-105 transform glow-purple"
                 >
                   Register Team
                 </button>
@@ -93,11 +78,11 @@ const Navbar = () => {
 
         {/* Mobile Menu */}
         {isMobileMenuOpen && (
-          <div className="md:hidden mt-4 py-4 bg-white bg-opacity-10 backdrop-blur-md rounded-2xl border border-white border-opacity-20 shadow-xl">
+          <div className="md:hidden mt-4 py-6 glass-dark rounded-3xl shadow-2xl">
             <div className="flex flex-col space-y-4 px-6">
-              {isLoggedIn ? (
+              {isAuthenticated ? (
                 <>
-                  <div className="px-6 py-2 text-sm text-gray-300 border-b border-white border-opacity-20">
+                  <div className="px-6 py-3 text-sm text-gray-300 border-b border-purple-400/30">
                     Welcome, {teamData?.teamName || 'Team'}!
                   </div>
                   <button
@@ -122,7 +107,7 @@ const Navbar = () => {
                       navigate('/login');
                       setIsMobileMenuOpen(false);
                     }}
-                    className="w-full text-left px-6 py-4 text-lg font-semibold text-gray-300 hover:text-white hover:bg-white hover:bg-opacity-10 rounded-xl transition-all duration-300"
+                    className="w-full text-left px-6 py-4 text-lg font-semibold text-gray-300 hover:text-white hover:bg-purple-500/20 rounded-xl transition-all duration-300"
                   >
                     <div className="flex items-center">
                       <svg className="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -136,7 +121,7 @@ const Navbar = () => {
                       navigate('/register');
                       setIsMobileMenuOpen(false);
                     }}
-                    className="w-full text-left px-6 py-4 text-lg font-bold text-white bg-gradient-to-r from-purple-600 to-purple-700 rounded-xl shadow-lg hover:from-purple-700 hover:to-purple-800 transition-all duration-300"
+                    className="w-full text-left px-6 py-4 text-lg font-bold text-white bg-gradient-to-r from-purple-500 via-purple-600 to-purple-700 rounded-xl shadow-xl hover:from-purple-600 hover:via-purple-700 hover:to-purple-800 transition-all duration-500 glow-purple"
                   >
                     <div className="flex items-center">
                       <svg className="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">

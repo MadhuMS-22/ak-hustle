@@ -118,7 +118,7 @@ const Aptitude = ({ questionStep, onSubmit, teamProgress }) => {
                         onClick={handleSubmit}
                         disabled={selected === null || submitting}
                         className={`w-full py-4 px-6 rounded-xl font-bold text-lg transition-all duration-200 transform hover:scale-105 ${selected !== null && !submitting
-                            ? 'bg-gradient-to-r from-cyan-500 to-blue-500 hover:from-cyan-600 hover:to-blue-600 text-white shadow-lg hover:shadow-xl'
+                            ? 'bg-gradient-to-r from-purple-500 via-purple-600 to-purple-700 hover:from-purple-600 hover:via-purple-700 hover:to-purple-800 text-white shadow-xl glow-purple'
                             : 'bg-slate-600 text-slate-400 cursor-not-allowed'
                             }`}
                     >

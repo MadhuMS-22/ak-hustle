@@ -90,7 +90,7 @@ const AdminDashboard = () => {
                                 fetchLeaderboard();
                             }}
                             disabled={refreshing}
-                            className="bg-cyan-600 hover:bg-cyan-700 text-white px-6 py-3 rounded-xl font-semibold transition-all duration-200 transform hover:scale-105 shadow-lg disabled:opacity-50 disabled:cursor-not-allowed"
+                            className="bg-gradient-to-r from-purple-500 via-purple-600 to-purple-700 hover:from-purple-600 hover:via-purple-700 hover:to-purple-800 text-white px-6 py-3 rounded-xl font-semibold transition-all duration-500 transform hover:scale-105 shadow-xl glow-purple disabled:opacity-50 disabled:cursor-not-allowed"
                         >
                             {refreshing ? 'Refreshing...' : 'Refresh Data'}
                         </button>
@@ -197,7 +197,7 @@ const AdminDashboard = () => {
                                 <div className="mb-6">
                                     <div className="flex items-center justify-between mb-3">
                                         <h3 className="text-2xl font-bold text-slate-200">{teamData.team.name}</h3>
-                                        <div className="bg-cyan-600 text-white px-3 py-1 rounded-full text-sm font-semibold">
+                                        <div className="bg-gradient-to-r from-purple-500 to-purple-600 text-white px-3 py-1 rounded-full text-sm font-semibold">
                                             Step {teamData.team.currentStep}/6
                                         </div>
                                     </div>

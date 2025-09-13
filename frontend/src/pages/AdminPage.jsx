@@ -635,7 +635,7 @@ const AdminPage = () => {
                 <div className="flex justify-between items-center mb-4">
                     <div className="flex-1"></div>
                     <div className="flex-1 text-center">
-                        <h1 className="text-4xl font-bold text-white bg-gradient-to-r from-white to-blue-200 bg-clip-text text-transparent">
+                        <h1 className="text-4xl font-bold text-white bg-gradient-to-r from-white via-purple-300 to-blue-300 bg-clip-text text-transparent drop-shadow-2xl">
                             Admin Dashboard
                         </h1>
                         <p className="text-lg text-gray-300 mt-2">Manage competition rounds and monitor team progress</p>
@@ -654,7 +654,7 @@ const AdminPage = () => {
             </div>
 
             {/* Total Teams Count */}
-            <div className="bg-gradient-to-br from-blue-600/20 to-blue-800/20 backdrop-blur-sm border border-blue-400/30 rounded-xl p-6 shadow-xl mb-8">
+            <div className="bg-gradient-to-br from-purple-600/20 to-purple-800/20 backdrop-blur-sm border border-purple-400/30 rounded-xl p-6 shadow-xl mb-8">
                 <div className="flex items-center justify-between">
                     <div>
                         <h3 className="text-2xl font-bold text-white mb-2">Total Teams Registered</h3>
@@ -662,7 +662,7 @@ const AdminPage = () => {
                     </div>
                     <div className="text-right">
                         <p className="text-5xl font-bold text-white">{stats.totalTeams}</p>
-                        <p className="text-blue-300 text-sm">Active Teams</p>
+                        <p className="text-purple-300 text-sm">Active Teams</p>
                     </div>
                 </div>
             </div>
@@ -677,21 +677,21 @@ const AdminPage = () => {
                     </div>
                     <button
                         onClick={handleAnnounceRound1}
-                        className="w-full bg-green-600 hover:bg-green-700 text-white font-semibold py-3 px-6 rounded-lg transition-all duration-300 hover:scale-105 transform shadow-lg"
+                        className="w-full bg-gradient-to-r from-purple-500 via-purple-600 to-purple-700 hover:from-purple-600 hover:via-purple-700 hover:to-purple-800 text-white font-semibold py-3 px-6 rounded-lg transition-all duration-500 hover:scale-105 transform shadow-xl glow-purple"
                     >
                         Announce Round 1 Results
                     </button>
                 </div>
 
                 {/* Round 2 Results Announcement */}
-                <div className="bg-gradient-to-br from-blue-600/20 to-blue-800/20 backdrop-blur-sm border border-blue-400/30 rounded-xl p-6 shadow-xl">
+                <div className="bg-gradient-to-br from-purple-600/20 to-purple-800/20 backdrop-blur-sm border border-purple-400/30 rounded-xl p-6 shadow-xl">
                     <div className="mb-4">
                         <h3 className="text-xl font-bold text-white">Round 2 Results</h3>
                         <p className="text-gray-300 text-sm">Coding Challenge</p>
                     </div>
                     <button
                         onClick={() => handleAnnounceRound(2)}
-                        className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-6 rounded-lg transition-all duration-300 hover:scale-105 transform shadow-lg"
+                        className="w-full bg-gradient-to-r from-purple-500 via-purple-600 to-purple-700 hover:from-purple-600 hover:via-purple-700 hover:to-purple-800 text-white font-semibold py-3 px-6 rounded-lg transition-all duration-500 hover:scale-105 transform shadow-xl glow-purple"
                     >
                         Announce Round 2 Results
                     </button>
@@ -705,7 +705,7 @@ const AdminPage = () => {
                     </div>
                     <button
                         onClick={() => handleAnnounceRound(3)}
-                        className="w-full bg-purple-600 hover:bg-purple-700 text-white font-semibold py-3 px-6 rounded-lg transition-all duration-300 hover:scale-105 transform shadow-lg"
+                        className="w-full bg-gradient-to-r from-purple-500 via-purple-600 to-purple-700 hover:from-purple-600 hover:via-purple-700 hover:to-purple-800 text-white font-semibold py-3 px-6 rounded-lg transition-all duration-500 hover:scale-105 transform shadow-xl glow-purple"
                     >
                         Announce Round 3 Results
                     </button>

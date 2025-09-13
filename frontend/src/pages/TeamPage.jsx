@@ -6,9 +6,11 @@ import CodeVerification from '../components/CodeVerification'
 import Navbar from '../components/Navbar'
 import Footer from '../components/Footer'
 import apiService from '../services/api'
+import { useAuth } from '../contexts/AuthContext'
 
 const TeamPage = () => {
   const navigate = useNavigate()
+  const { logout, isAuthenticated, teamData: contextTeamData } = useAuth()
   const [teamName, setTeamName] = useState('')
   const [teamData, setTeamData] = useState(null)
   const [rounds, setRounds] = useState({
@@ -23,19 +25,18 @@ const TeamPage = () => {
   const [roundCodes, setRoundCodes] = useState({ round2: '', round3: '' })
 
   useEffect(() => {
-    // Get team data from localStorage (set during login)
-    const storedTeam = localStorage.getItem('hustle_team')
-    if (storedTeam) {
-      const parsedTeamData = JSON.parse(storedTeam)
-      setTeamData(parsedTeamData)
-      setTeamName(parsedTeamData.teamName || 'Unknown Team')
-      // Fetch real-time team data from backend
-      fetchTeamData(parsedTeamData._id)
-    } else {
-      // If no team data, redirect to login
+    // Check authentication status from context
+    if (!isAuthenticated || !contextTeamData) {
       navigate('/login')
+      return
     }
-  }, [navigate])
+
+    // Use team data from context
+    setTeamData(contextTeamData)
+    setTeamName(contextTeamData.teamName || 'Unknown Team')
+    // Fetch real-time team data from backend
+    fetchTeamData(contextTeamData._id)
+  }, [isAuthenticated, contextTeamData, navigate])
 
   // Fetch team data from backend
   const fetchTeamData = async (teamId) => {
@@ -108,8 +109,8 @@ const TeamPage = () => {
   }, [teamData?._id])
 
   const handleLogout = () => {
-    // Clear team data from localStorage
-    localStorage.removeItem('hustle_team')
+    // Use the logout method from AuthContext
+    logout()
     // Redirect to home page
     navigate('/')
   }
@@ -212,14 +213,14 @@ const TeamPage = () => {
   }
 
   return (
-    <div className='bg-gradient-to-br from-purple-900 via-blue-900 to-indigo-900 font-sans antialiased min-h-screen'>
+    <div className='bg-gradient-to-br from-gray-900 via-purple-900 to-indigo-900 font-sans antialiased min-h-screen relative overflow-hidden'>
       <Navbar />
 
       <main className="pt-20 min-h-screen">
         {/* Team Header Section */}
         <div className='text-center py-12 px-4'>
           <div className="max-w-4xl mx-auto">
-            <h1 className='text-4xl sm:text-5xl font-bold text-white mb-4 bg-gradient-to-r from-white to-purple-200 bg-clip-text text-transparent'>
+            <h1 className='text-5xl sm:text-6xl font-bold text-white mb-6 bg-gradient-to-r from-white via-purple-300 to-blue-300 bg-clip-text text-transparent drop-shadow-2xl'>
               Welcome, {teamName}!
             </h1>
             <p className='text-lg text-gray-300 mb-4'>Your team dashboard - check results and start new rounds</p>
@@ -231,7 +232,7 @@ const TeamPage = () => {
         <div className='py-16 px-4'>
           <div className="max-w-6xl mx-auto">
             <div className="text-center mb-12">
-              <h2 className="text-3xl sm:text-4xl font-bold text-white mb-4 bg-gradient-to-r from-white to-blue-200 bg-clip-text text-transparent">
+              <h2 className="text-4xl sm:text-5xl font-bold text-white mb-6 bg-gradient-to-r from-white via-purple-300 to-blue-300 bg-clip-text text-transparent drop-shadow-2xl">
                 Competition Rounds
               </h2>
               <p className="text-lg text-gray-300">Complete each round to unlock the next one. Good luck!</p>
@@ -239,14 +240,14 @@ const TeamPage = () => {
 
             <div className='grid grid-cols-1 lg:grid-cols-3 gap-6'>
               {/* Round 1 */}
-              <div className={classNames('p-6 rounded-2xl text-center bg-white/10 backdrop-blur-md border border-white/20 shadow-xl w-full flex flex-col justify-center items-center gap-6 transition-all duration-300 hover:scale-105', {
+              <div className={classNames('p-8 rounded-3xl text-center glass-dark shadow-2xl w-full flex flex-col justify-center items-center gap-6 transition-all duration-500 hover:scale-105 hover:glow-purple', {
                 "bg-green-600/20 border-green-400/30": getRoundStatus(rounds.round1, 1) === 'passed',
                 "bg-red-600/20 border-red-400/30": getRoundStatus(rounds.round1, 1) === 'failed',
                 "bg-orange-600/20 border-orange-400/30": getRoundStatus(rounds.round1, 1) === 'pending'
               })}>
                 <div className='flex flex-col items-center gap-4'>
-                  <div className="p-4 rounded-full bg-white/10 backdrop-blur-md">
-                    <span className="text-2xl font-bold text-white">1</span>
+                  <div className="p-6 rounded-full bg-gradient-to-br from-purple-500 to-purple-600 text-white backdrop-blur-md glow-purple">
+                    <span className="text-3xl font-bold text-white">1</span>
                   </div>
                   <h3 className='text-2xl font-bold text-white'>Round 1: Aptitude</h3>
                   <p className='text-sm font-medium text-gray-300 text-center leading-relaxed'>
@@ -258,22 +259,22 @@ const TeamPage = () => {
                 </div>
                 <button
                   onClick={() => handleViewResults(1)}
-                  className='bg-white/20 hover:bg-white/30 text-white font-semibold py-3 px-6 rounded-xl transition-all duration-300 hover:scale-105 backdrop-blur-sm border border-white/30'
+                  className='bg-gradient-to-r from-purple-500 via-purple-600 to-purple-700 hover:from-purple-600 hover:via-purple-700 hover:to-purple-800 text-white font-semibold py-4 px-8 rounded-2xl transition-all duration-500 hover:scale-105 shadow-xl glow-purple'
                 >
                   View Result
                 </button>
               </div>
 
               {/* Round 2 */}
-              <div className={classNames('p-6 rounded-2xl text-center bg-white/10 backdrop-blur-md border border-white/20 shadow-xl w-full flex flex-col justify-center items-center gap-6 transition-all duration-300 hover:scale-105', {
+              <div className={classNames('p-8 rounded-3xl text-center glass-dark shadow-2xl w-full flex flex-col justify-center items-center gap-6 transition-all duration-500 hover:scale-105 hover:glow-blue', {
                 "bg-green-600/20 border-green-400/30": getRoundStatus(rounds.round2, 2) === 'passed',
                 "bg-red-600/20 border-red-400/30": getRoundStatus(rounds.round2, 2) === 'failed',
                 "bg-blue-600/20 border-blue-400/30": getRoundStatus(rounds.round2, 2) === 'available',
                 "bg-gray-600/20 border-gray-400/30": getRoundStatus(rounds.round2, 2) === 'locked'
               })}>
                 <div className='flex flex-col items-center gap-4'>
-                  <div className="p-4 rounded-full bg-white/10 backdrop-blur-md">
-                    <span className="text-2xl font-bold text-white">2</span>
+                  <div className="p-6 rounded-full bg-gradient-to-br from-purple-500 to-purple-600 text-white backdrop-blur-md glow-purple">
+                    <span className="text-3xl font-bold text-white">2</span>
                   </div>
                   <h3 className='text-2xl font-bold text-white'>Round 2: Coding</h3>
                   <p className='text-sm font-medium text-gray-300 text-center leading-relaxed'>
@@ -293,14 +294,14 @@ const TeamPage = () => {
                 ) : getRoundStatus(rounds.round2, 2) === 'passed' || getRoundStatus(rounds.round2, 2) === 'failed' ? (
                   <button
                     onClick={() => handleViewResults(2)}
-                    className='bg-white/20 hover:bg-white/30 text-white font-semibold py-3 px-6 rounded-xl transition-all duration-300 hover:scale-105 backdrop-blur-sm border border-white/30'
+                    className='bg-gradient-to-r from-purple-500 via-purple-600 to-purple-700 hover:from-purple-600 hover:via-purple-700 hover:to-purple-800 text-white font-semibold py-4 px-8 rounded-2xl transition-all duration-500 hover:scale-105 shadow-xl glow-purple'
                   >
                     View Result
                   </button>
                 ) : (
                   <button
                     onClick={() => handleStartRound(2)}
-                    className='bg-white/20 hover:bg-white/30 text-white font-semibold py-3 px-6 rounded-xl transition-all duration-300 hover:scale-105 backdrop-blur-sm border border-white/30'
+                    className='bg-gradient-to-r from-purple-500 via-purple-600 to-purple-700 hover:from-purple-600 hover:via-purple-700 hover:to-purple-800 text-white font-semibold py-4 px-8 rounded-2xl transition-all duration-500 hover:scale-105 shadow-xl glow-purple'
                   >
                     Start Round 2
                   </button>
@@ -308,15 +309,15 @@ const TeamPage = () => {
               </div>
 
               {/* Round 3 */}
-              <div className={classNames('p-6 rounded-2xl text-center bg-white/10 backdrop-blur-md border border-white/20 shadow-xl w-full flex flex-col justify-center items-center gap-6 transition-all duration-300 hover:scale-105', {
+              <div className={classNames('p-8 rounded-3xl text-center glass-dark shadow-2xl w-full flex flex-col justify-center items-center gap-6 transition-all duration-500 hover:scale-105 hover:glow-purple', {
                 "bg-green-600/20 border-green-400/30": getRoundStatus(rounds.round3, 3) === 'passed',
                 "bg-red-600/20 border-red-400/30": getRoundStatus(rounds.round3, 3) === 'failed',
                 "bg-blue-600/20 border-blue-400/30": getRoundStatus(rounds.round3, 3) === 'available',
                 "bg-gray-600/20 border-gray-400/30": getRoundStatus(rounds.round3, 3) === 'locked'
               })}>
                 <div className='flex flex-col items-center gap-4'>
-                  <div className="p-4 rounded-full bg-white/10 backdrop-blur-md">
-                    <span className="text-2xl font-bold text-white">3</span>
+                  <div className="p-6 rounded-full bg-gradient-to-br from-purple-500 to-purple-600 text-white backdrop-blur-md glow-purple">
+                    <span className="text-3xl font-bold text-white">3</span>
                   </div>
                   <h3 className='text-2xl font-bold text-white'>Round 3: Final</h3>
                   <p className='text-sm font-medium text-gray-300 text-center leading-relaxed'>
@@ -336,14 +337,14 @@ const TeamPage = () => {
                 ) : getRoundStatus(rounds.round3, 3) === 'passed' || getRoundStatus(rounds.round3, 3) === 'failed' ? (
                   <button
                     onClick={() => handleViewResults(3)}
-                    className='bg-white/20 hover:bg-white/30 text-white font-semibold py-3 px-6 rounded-xl transition-all duration-300 hover:scale-105 backdrop-blur-sm border border-white/30'
+                    className='bg-gradient-to-r from-purple-500 via-purple-600 to-purple-700 hover:from-purple-600 hover:via-purple-700 hover:to-purple-800 text-white font-semibold py-4 px-8 rounded-2xl transition-all duration-500 hover:scale-105 shadow-xl glow-purple'
                   >
                     View Result
                   </button>
                 ) : (
                   <button
                     onClick={() => handleStartRound(3)}
-                    className='bg-white/20 hover:bg-white/30 text-white font-semibold py-3 px-6 rounded-xl transition-all duration-300 hover:scale-105 backdrop-blur-sm border border-white/30'
+                    className='bg-gradient-to-r from-purple-500 via-purple-600 to-purple-700 hover:from-purple-600 hover:via-purple-700 hover:to-purple-800 text-white font-semibold py-4 px-8 rounded-2xl transition-all duration-500 hover:scale-105 shadow-xl glow-purple'
                   >
                     Start Round 3
                   </button>
@@ -366,7 +367,7 @@ const TeamPage = () => {
       {/* Round 1 Result Modal */}
       {showResults.round1 && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white/10 backdrop-blur-md rounded-2xl p-8 max-w-md w-full border border-white/20">
+          <div className="glass-dark rounded-3xl p-8 max-w-md w-full shadow-2xl">
             <div className="text-center">
               <div className="w-16 h-16 bg-green-500/20 rounded-full flex items-center justify-center mx-auto mb-4">
                 <svg className="w-8 h-8 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -392,7 +393,7 @@ const TeamPage = () => {
       {/* Round 2 Result Modal */}
       {showResults.round2 && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white/10 backdrop-blur-md rounded-2xl p-8 max-w-md w-full border border-white/20">
+          <div className="glass-dark rounded-3xl p-8 max-w-md w-full shadow-2xl">
             <div className="text-center">
               <div className="w-16 h-16 bg-blue-500/20 rounded-full flex items-center justify-center mx-auto mb-4">
                 <svg className="w-8 h-8 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">

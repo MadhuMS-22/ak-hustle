@@ -146,7 +146,7 @@ int main() {
 
                 <div className="bg-slate-800 rounded-2xl shadow-xl p-6 border border-slate-700">
                     <h3 className="text-2xl font-bold text-slate-200 mb-4 flex items-center">
-                        <span className="bg-cyan-600 text-white px-3 py-1 rounded-lg text-sm font-semibold mr-3">DEBUG</span>
+                        <span className="bg-gradient-to-r from-purple-500 to-purple-600 text-white px-3 py-1 rounded-lg text-sm font-semibold mr-3">DEBUG</span>
                         Fix the Code Below
                     </h3>
 
@@ -177,7 +177,7 @@ int main() {
 
                         <button
                             onClick={() => setCode(codeToDebug)}
-                            className="px-6 py-3 bg-slate-600 hover:bg-slate-700 text-slate-200 rounded-xl font-semibold transition-all duration-200"
+                            className="px-6 py-3 bg-gradient-to-r from-purple-500 via-purple-600 to-purple-700 hover:from-purple-600 hover:via-purple-700 hover:to-purple-800 text-white rounded-xl font-semibold transition-all duration-500 shadow-xl glow-purple"
                         >
                             Reset Code
                         </button>

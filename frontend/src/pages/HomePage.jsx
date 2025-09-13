@@ -7,7 +7,7 @@ const HomePage = () => {
   const navigate = useNavigate();
 
   return (
-    <div className="bg-gradient-to-br from-purple-900 via-blue-900 to-indigo-900 font-sans antialiased text-white min-h-screen">
+    <div className="bg-gradient-to-br from-gray-900 via-purple-900 to-indigo-900 font-sans antialiased text-white min-h-screen relative overflow-hidden">
       <Navbar />
 
       {/* Main Content */}
@@ -16,24 +16,24 @@ const HomePage = () => {
         <section className="py-12 text-center px-4 sm:px-6 lg:px-8">
           <div className="max-w-4xl mx-auto">
             <div className="flex justify-center mb-6">
-              <div className="p-4 rounded-2xl bg-white bg-opacity-10 text-purple-300 shadow-xl backdrop-blur-md border border-white border-opacity-20 hover:scale-105 transition-transform duration-300">
+              <div className="p-6 rounded-3xl glass-dark text-purple-300 shadow-2xl hover:scale-110 transition-all duration-500 glow-purple">
                 {/* Replace the src with your main icon image URL */}
                 <img src="https://placehold.co/64x64/E9D5FF/6D28D9?text=</>" alt="Coding Icon" className="h-16 w-16" />
               </div>
             </div>
-            <h1 className="text-5xl sm:text-6xl font-extrabold text-white leading-tight mb-4 bg-gradient-to-r from-white to-purple-200 bg-clip-text text-transparent">
+            <h1 className="text-6xl sm:text-7xl font-extrabold text-white leading-tight mb-6 bg-gradient-to-r from-white via-purple-300 to-blue-300 bg-clip-text text-transparent drop-shadow-2xl">
               Hustle
             </h1>
-            <p className="text-lg sm:text-xl text-gray-200 max-w-3xl mx-auto mb-8 leading-relaxed">
+            <p className="text-xl sm:text-2xl text-gray-300 max-w-4xl mx-auto mb-10 leading-relaxed">
               Premier technical competition designed to push the boundaries of coding and problem-solving.
-              <span className="block mt-2 text-base sm:text-lg text-purple-200">
+              <span className="block mt-4 text-lg sm:text-xl text-purple-300 font-medium">
                 Challenge yourself with complex puzzles and dynamic coding challenges in a high-stakes, timed environment.
               </span>
             </p>
             <div className="flex flex-col sm:flex-row justify-center gap-4">
               <button
                 onClick={() => navigate('/register')}
-                className="group flex items-center justify-center px-8 py-4 bg-gradient-to-r from-purple-600 to-purple-700 text-white text-lg font-bold rounded-xl shadow-xl hover:from-purple-700 hover:to-purple-800 transition-all duration-300 transform hover:scale-105 hover:shadow-purple-500/25"
+                className="group flex items-center justify-center px-10 py-5 bg-gradient-to-r from-purple-500 via-purple-600 to-purple-700 text-white text-xl font-bold rounded-2xl shadow-2xl hover:from-purple-600 hover:via-purple-700 hover:to-purple-800 transition-all duration-500 transform hover:scale-110 glow-purple"
               >
                 Register Your Team
                 <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 ml-2 group-hover:translate-x-1 transition-transform duration-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -47,67 +47,67 @@ const HomePage = () => {
         {/* Competition Format Section */}
         <section className="py-16 px-4 sm:px-6 lg:px-8">
           <div className="max-w-6xl mx-auto">
-            <div className="text-center mb-12">
-              <h2 className="text-4xl sm:text-5xl font-extrabold text-white mb-4 bg-gradient-to-r from-white to-blue-200 bg-clip-text text-transparent">
+            <div className="text-center mb-16">
+              <h2 className="text-5xl sm:text-6xl font-extrabold text-white mb-6 bg-gradient-to-r from-white via-purple-300 to-blue-300 bg-clip-text text-transparent drop-shadow-2xl">
                 Competition Format
               </h2>
-              <p className="text-lg sm:text-xl text-gray-300 max-w-2xl mx-auto leading-relaxed">
+              <p className="text-xl sm:text-2xl text-gray-300 max-w-3xl mx-auto leading-relaxed">
                 Three exciting rounds designed to test different aspects of your coding skills
               </p>
             </div>
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
               {/* Round 1 Card */}
-              <div className="group bg-white bg-opacity-10 p-6 rounded-2xl shadow-xl border border-white border-opacity-20 backdrop-blur-md transition-all duration-300 hover:scale-105 hover:bg-opacity-15 hover:shadow-emerald-500/20">
-                <div className="flex justify-center mb-6">
-                  <div className="p-4 rounded-full bg-gradient-to-br from-emerald-500 to-emerald-600 bg-opacity-20 text-emerald-300 backdrop-blur-md group-hover:scale-110 transition-transform duration-300">
+              <div className="group glass-dark p-8 rounded-3xl shadow-2xl transition-all duration-500 hover:scale-105 hover:glow-purple">
+                <div className="flex justify-center mb-8">
+                  <div className="p-6 rounded-full bg-gradient-to-br from-purple-500 to-purple-600 text-white backdrop-blur-md group-hover:scale-110 transition-transform duration-500 glow-purple">
                     {/* Replace the src with your Round 1 image URL */}
-                    <img src="https://placehold.co/40x40/D1FAE5/065F46?text=R1" alt="Round 1 icon" className="h-10 w-10" />
+                    <img src="https://placehold.co/40x40/E9D5FF/6D28D9?text=R1" alt="Round 1 icon" className="h-12 w-12" />
                   </div>
                 </div>
-                <h3 className="text-xl font-bold text-white text-center mb-3">Round 1: Aptitude</h3>
-                <p className="text-sm text-gray-300 text-center mb-6 leading-relaxed">
+                <h3 className="text-2xl font-bold text-white text-center mb-4">Round 1: Aptitude</h3>
+                <p className="text-gray-300 text-center mb-8 leading-relaxed">
                   Test your logical thinking and problem-solving abilities with brain teasers and puzzles.
                 </p>
                 <div className="text-center">
-                  <span className="inline-block px-4 py-2 bg-emerald-500 bg-opacity-20 text-emerald-200 text-xs font-bold rounded-full border border-emerald-400 border-opacity-30 shadow-md backdrop-blur-md">
+                  <span className="inline-block px-6 py-3 bg-gradient-to-r from-purple-500 to-purple-600 text-white text-sm font-bold rounded-full shadow-lg">
                     Duration: 45 minutes
                   </span>
                 </div>
               </div>
 
               {/* Round 2 Card */}
-              <div className="group bg-white bg-opacity-10 p-6 rounded-2xl shadow-xl border border-white border-opacity-20 backdrop-blur-md transition-all duration-300 hover:scale-105 hover:bg-opacity-15 hover:shadow-indigo-500/20">
-                <div className="flex justify-center mb-6">
-                  <div className="p-4 rounded-full bg-gradient-to-br from-indigo-500 to-indigo-600 bg-opacity-20 text-indigo-300 backdrop-blur-md group-hover:scale-110 transition-transform duration-300">
+              <div className="group glass-dark p-8 rounded-3xl shadow-2xl transition-all duration-500 hover:scale-105 hover:glow-purple">
+                <div className="flex justify-center mb-8">
+                  <div className="p-6 rounded-full bg-gradient-to-br from-purple-500 to-purple-600 text-white backdrop-blur-md group-hover:scale-110 transition-transform duration-500 glow-purple">
                     {/* Replace the src with your Round 2 image URL */}
-                    <img src="https://placehold.co/40x40/E0E7FF/4338CA?text=R2" alt="Round 2 icon" className="h-10 w-10" />
+                    <img src="https://placehold.co/40x40/DBEAFE/3B82F6?text=R2" alt="Round 2 icon" className="h-12 w-12" />
                   </div>
                 </div>
-                <h3 className="text-xl font-bold text-white text-center mb-3">Round 2: Coding</h3>
-                <p className="text-sm text-gray-300 text-center mb-6 leading-relaxed">
+                <h3 className="text-2xl font-bold text-white text-center mb-4">Round 2: Coding</h3>
+                <p className="text-gray-300 text-center mb-8 leading-relaxed">
                   Sequential puzzle unlock system. Solve programming challenges to advance through levels.
                 </p>
                 <div className="text-center">
-                  <span className="inline-block px-4 py-2 bg-indigo-500 bg-opacity-20 text-indigo-200 text-xs font-bold rounded-full border border-indigo-400 border-opacity-30 shadow-md backdrop-blur-md">
+                  <span className="inline-block px-6 py-3 bg-gradient-to-r from-purple-500 to-purple-600 text-white text-sm font-bold rounded-full shadow-lg">
                     Duration: 2 hours
                   </span>
                 </div>
               </div>
 
               {/* Round 3 Card */}
-              <div className="group bg-white bg-opacity-10 p-6 rounded-2xl shadow-xl border border-white border-opacity-20 backdrop-blur-md transition-all duration-300 hover:scale-105 hover:bg-opacity-15 hover:shadow-purple-500/20">
-                <div className="flex justify-center mb-6">
-                  <div className="p-4 rounded-full bg-gradient-to-br from-purple-500 to-purple-600 bg-opacity-20 text-purple-300 backdrop-blur-md group-hover:scale-110 transition-transform duration-300">
+              <div className="group glass-dark p-8 rounded-3xl shadow-2xl transition-all duration-500 hover:scale-105 hover:glow-purple">
+                <div className="flex justify-center mb-8">
+                  <div className="p-6 rounded-full bg-gradient-to-br from-purple-500 to-purple-600 text-white backdrop-blur-md group-hover:scale-110 transition-transform duration-500 glow-purple">
                     {/* Replace the src with your Round 3 image URL */}
-                    <img src="https://placehold.co/40x40/EDE9FE/6D28D9?text=R3" alt="Round 3 icon" className="h-10 w-10" />
+                    <img src="https://placehold.co/40x40/EDE9FE/6D28D9?text=R3" alt="Round 3 icon" className="h-12 w-12" />
                   </div>
                 </div>
-                <h3 className="text-xl font-bold text-white text-center mb-3">Round 3: Final</h3>
-                <p className="text-sm text-gray-300 text-center mb-6 leading-relaxed">
+                <h3 className="text-2xl font-bold text-white text-center mb-4">Round 3: Final</h3>
+                <p className="text-gray-300 text-center mb-8 leading-relaxed">
                   Advanced algorithms and complex problem-solving for qualified teams only.
                 </p>
                 <div className="text-center">
-                  <span className="inline-block px-4 py-2 bg-purple-500 bg-opacity-20 text-purple-200 text-xs font-bold rounded-full border border-purple-400 border-opacity-30 shadow-md backdrop-blur-md">
+                  <span className="inline-block px-6 py-3 bg-gradient-to-r from-purple-500 to-purple-600 text-white text-sm font-bold rounded-full shadow-lg">
                     Duration: 3 hours
                   </span>
                 </div>

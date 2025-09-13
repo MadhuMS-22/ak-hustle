@@ -3,9 +3,11 @@ import { useNavigate } from 'react-router-dom';
 import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
 import authService from '../services/authService';
+import { useAuth } from '../contexts/AuthContext';
 
 const LoginPage = () => {
   const navigate = useNavigate();
+  const { login } = useAuth();
   const [showPassword, setShowPassword] = useState(false);
   const [message, setMessage] = useState({ type: '', text: '' });
   const [formData, setFormData] = useState({
@@ -53,8 +55,8 @@ const LoginPage = () => {
 
         if (response.success) {
           setMessage({ type: 'success', text: 'Login successful! Redirecting...' });
-          // Store team data in localStorage for easy access
-          localStorage.setItem('hustle_team', JSON.stringify(response.data.team));
+          // Use the login method from AuthContext
+          login(response.data.team);
           // Redirect to team page after successful login
           setTimeout(() => {
             navigate('/team');
@@ -81,19 +83,19 @@ const LoginPage = () => {
   return (
     <>
       <Navbar />
-      <div className="min-h-screen bg-gradient-to-br from-purple-900 via-blue-900 to-indigo-900 pt-20">
+      <div className="min-h-screen bg-gradient-to-br from-gray-900 via-purple-900 to-indigo-900 pt-20 relative overflow-hidden">
         <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-12">
           <div className="max-w-md mx-auto">
             <div className="text-center mb-8">
-              <h1 className="text-4xl sm:text-5xl font-bold text-white mb-4 bg-gradient-to-r from-white to-purple-200 bg-clip-text text-transparent">
+              <h1 className="text-5xl sm:text-6xl font-bold text-white mb-6 bg-gradient-to-r from-white via-purple-300 to-blue-300 bg-clip-text text-transparent drop-shadow-2xl">
                 Team Login
               </h1>
-              <p className="text-lg text-gray-300 leading-relaxed">
+              <p className="text-xl text-gray-300 leading-relaxed">
                 Sign in to your team account to start the competition
               </p>
             </div>
 
-            <div className="bg-white bg-opacity-10 backdrop-blur-md rounded-2xl p-6 shadow-xl border border-white border-opacity-20">
+            <div className="glass-dark rounded-3xl p-8 shadow-2xl">
               {message.text && (
                 <div className={`p-4 rounded-xl mb-6 ${message.type === 'success' ? 'bg-green-500 bg-opacity-20 text-green-200 border border-green-400 border-opacity-30' :
                   message.type === 'error' ? 'bg-red-500 bg-opacity-20 text-red-200 border border-red-400 border-opacity-30' :
@@ -133,7 +135,7 @@ const LoginPage = () => {
                     name="teamName"
                     value={formData.teamName}
                     onChange={handleInputChange}
-                    className="w-full px-4 py-3 bg-white bg-opacity-10 border border-white border-opacity-20 rounded-xl text-white placeholder-gray-300 focus:outline-none focus:ring-2 focus:ring-purple-400 focus:border-transparent transition-all duration-300 backdrop-blur-md"
+                    className="w-full px-6 py-4 glass border border-purple-400/30 rounded-xl text-white placeholder-gray-300 focus:outline-none focus:ring-2 focus:ring-purple-400 focus:border-purple-400/50 transition-all duration-300"
                     placeholder="Enter your team name"
                   />
                   {errors.teamName && <p className="text-red-400 text-sm mt-1 flex items-center">
@@ -159,13 +161,13 @@ const LoginPage = () => {
                       name="password"
                       value={formData.password}
                       onChange={handleInputChange}
-                      className="w-full px-4 py-3 pr-12 bg-white bg-opacity-10 border border-white border-opacity-20 rounded-xl text-white placeholder-gray-300 focus:outline-none focus:ring-2 focus:ring-purple-400 focus:border-transparent transition-all duration-300 backdrop-blur-md"
+                      className="w-full px-6 py-4 pr-12 glass border border-purple-400/30 rounded-xl text-white placeholder-gray-300 focus:outline-none focus:ring-2 focus:ring-purple-400 focus:border-purple-400/50 transition-all duration-300"
                       placeholder="Enter password"
                     />
                     <button
                       type="button"
                       onClick={() => setShowPassword(!showPassword)}
-                      className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-300 hover:text-white transition-colors p-1 rounded-lg hover:bg-white hover:bg-opacity-10"
+                      className="absolute right-4 top-1/2 transform -translate-y-1/2 text-gray-300 hover:text-white transition-colors p-2 rounded-lg hover:bg-purple-500/20"
                     >
                       {showPassword ? (
                         <svg xmlns="http://www.w3.org/2000/svg" className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -191,7 +193,7 @@ const LoginPage = () => {
                 <button
                   type="button"
                   onClick={handleSubmit}
-                  className="w-full bg-gradient-to-r from-purple-600 to-purple-700 hover:from-purple-700 hover:to-purple-800 text-white font-bold py-3 px-6 rounded-xl transition-all duration-300 hover:scale-105 transform shadow-xl hover:shadow-purple-500/25"
+                  className="w-full bg-gradient-to-r from-purple-500 via-purple-600 to-purple-700 hover:from-purple-600 hover:via-purple-700 hover:to-purple-800 text-white font-bold py-4 px-8 rounded-2xl transition-all duration-500 hover:scale-105 transform shadow-2xl glow-purple"
                 >
                   <div className="flex items-center justify-center">
                     <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">

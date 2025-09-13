@@ -170,7 +170,7 @@ const Round2Page = () => {
 
     if (isLoading) {
         return (
-            <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 flex items-center justify-center">
+            <div className="min-h-screen bg-gradient-to-br from-gray-900 via-purple-900 to-indigo-900 flex items-center justify-center">
                 <div className="text-center text-white">
                     <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-cyan-400 mx-auto mb-4"></div>
                     Loading Round 2...
@@ -183,7 +183,7 @@ const Round2Page = () => {
         <div className="flex h-screen">
             <div className="w-80 bg-slate-800 border-r border-slate-700 p-6 h-screen overflow-hidden">
                 <div className="mb-6">
-                    <h3 className="text-lg font-bold text-cyan-400 mb-2">Team: {teamName}</h3>
+                    <h3 className="text-lg font-bold text-purple-300 mb-2">Team: {teamName}</h3>
                     <div className="text-sm text-slate-400">
                         Progress: {teamProgress ? Object.values(teamProgress.completedQuestions).filter(Boolean).length : 0}/6 Questions
                     </div>
@@ -297,10 +297,10 @@ const Round2Page = () => {
                         <Program onSubmit={handleCodeSubmit} teamId={teamId} />
                     ) : null
                 ) : isQuizCompleted ? (
-                    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 p-4">
+                    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-gray-900 via-purple-900 to-indigo-900 p-4">
                         <div className="text-center">
                             <div className="text-8xl mb-6">🎉</div>
-                            <h2 className="text-5xl text-cyan-400 font-bold mb-4">
+                            <h2 className="text-5xl text-purple-300 font-bold mb-4 bg-gradient-to-r from-purple-300 to-blue-300 bg-clip-text text-transparent">
                                 Round 2 Completed!
                             </h2>
                             <p className="text-xl text-slate-300 mb-8">

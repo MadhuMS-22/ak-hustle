@@ -140,7 +140,7 @@ Output: 0 1 1 2 3`;
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                     <div className="bg-slate-800 rounded-2xl shadow-xl p-6 border border-slate-700">
                         <h3 className="text-2xl font-bold text-slate-200 mb-4 flex items-center">
-                            <span className="bg-orange-600 text-white px-3 py-1 rounded-lg text-sm font-semibold mr-3">SAMPLE</span>
+                            <span className="bg-gradient-to-r from-purple-500 to-purple-600 text-white px-3 py-1 rounded-lg text-sm font-semibold mr-3">SAMPLE</span>
                             Sample Output
                         </h3>
                         <div className="bg-slate-900 rounded-xl p-4 overflow-x-auto border border-slate-600">
@@ -152,7 +152,7 @@ Output: 0 1 1 2 3`;
 
                     <div className="bg-slate-800 rounded-2xl shadow-xl p-6 border border-slate-700">
                         <h3 className="text-2xl font-bold text-slate-200 mb-4 flex items-center">
-                            <span className="bg-blue-600 text-white px-3 py-1 rounded-lg text-sm font-semibold mr-3">CODE</span>
+                            <span className="bg-gradient-to-r from-purple-500 to-purple-600 text-white px-3 py-1 rounded-lg text-sm font-semibold mr-3">CODE</span>
                             Your Code
                         </h3>
                         <textarea
@@ -167,7 +167,7 @@ Output: 0 1 1 2 3`;
                                 onClick={handleSubmit}
                                 disabled={!code.trim() || timeLeft === 0 || submitting}
                                 className={`flex-1 py-3 px-6 rounded-xl font-bold transition-all duration-200 transform hover:scale-105 ${code.trim() && timeLeft > 0 && !submitting
-                                    ? 'bg-gradient-to-r from-cyan-500 to-orange-500 hover:from-cyan-600 hover:to-orange-600 text-white shadow-lg hover:shadow-xl'
+                                    ? 'bg-gradient-to-r from-purple-500 via-purple-600 to-purple-700 hover:from-purple-600 hover:via-purple-700 hover:to-purple-800 text-white shadow-xl glow-purple'
                                     : 'bg-slate-600 text-slate-400 cursor-not-allowed'
                                     }`}
                             >
