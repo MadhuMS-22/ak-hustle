@@ -49,11 +49,12 @@ const connectDB = async (retryCount = 0) => {
             console.log('Mongoose reconnected to MongoDB');
         });
 
-        // Handle application termination
+        // Handle application termination - but don't close immediately
         process.on('SIGINT', async () => {
-            await mongoose.connection.close();
-            console.log('Mongoose connection closed through app termination');
-            process.exit(0);
+            console.log('Received SIGINT, but keeping connection alive for debugging');
+            // await mongoose.connection.close();
+            // console.log('Mongoose connection closed through app termination');
+            // process.exit(0);
         });
 
         // Keep the process alive

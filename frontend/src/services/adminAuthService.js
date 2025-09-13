@@ -1,7 +1,7 @@
 import apiService from './api.js';
 
 // Get API base URL
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5009/api';
+const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5010/api';
 
 class AdminAuthService {
     // Admin login

@@ -102,28 +102,43 @@ app.use(notFound);
 // Error handler
 app.use(errorHandler);
 
-const PORT = process.env.PORT || 5000;
+const PORT = process.env.PORT || 5010;
 
-const server = app.listen(PORT, () => {
-    console.log(`🚀 Server running in ${process.env.NODE_ENV || 'development'} mode on port ${PORT}`);
-    console.log(`📊 Health check: http://localhost:${PORT}/api/health`);
-    console.log(`🔐 Auth endpoints: http://localhost:${PORT}/api/auth`);
-    console.log(`🏆 Competition endpoints: http://localhost:${PORT}/api/competition`);
-});
+// Only start server if this file is run directly (not imported)
+if (process.argv[1] && process.argv[1].endsWith('server.js')) {
+    const server = app.listen(PORT, () => {
+        console.log(`🚀 Server running in ${process.env.NODE_ENV || 'development'} mode on port ${PORT}`);
+        console.log(`📊 Health check: http://localhost:${PORT}/api/health`);
+        console.log(`🔐 Auth endpoints: http://localhost:${PORT}/api/auth`);
+        console.log(`🏆 Competition endpoints: http://localhost:${PORT}/api/competition`);
+    }).on("error", (err) => {
+        if (err.code === "EADDRINUSE") {
+            console.error(`❌ Port ${PORT} already in use, trying ${PORT + 1}`);
+            app.listen(PORT + 1, () => {
+                console.log(`✅ Server running on port ${PORT + 1}`);
+                console.log(`📊 Health check: http://localhost:${PORT + 1}/api/health`);
+                console.log(`🔐 Auth endpoints: http://localhost:${PORT + 1}/api/auth`);
+                console.log(`🏆 Competition endpoints: http://localhost:${PORT + 1}/api/competition`);
+            });
+        } else {
+            console.error('Server error:', err);
+        }
+    });
 
-// Handle unhandled promise rejections
-process.on('unhandledRejection', (err, promise) => {
-    console.log('Unhandled Rejection at:', promise, 'reason:', err);
-    // Close server & exit process
-    server.close(() => {
+    // Handle unhandled promise rejections
+    process.on('unhandledRejection', (err, promise) => {
+        console.log('Unhandled Rejection at:', promise, 'reason:', err);
+        // Close server & exit process
+        server.close(() => {
+            process.exit(1);
+        });
+    });
+
+    // Handle uncaught exceptions
+    process.on('uncaughtException', (err) => {
+        console.log('Uncaught Exception:', err);
         process.exit(1);
     });
-});
-
-// Handle uncaught exceptions
-process.on('uncaughtException', (err) => {
-    console.log('Uncaught Exception:', err);
-    process.exit(1);
-});
+}
 
 export default app;

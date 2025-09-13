@@ -5,8 +5,8 @@ export const submitRound3 = async (req, res) => {
     try {
         const { teamId, score, timeTaken, selectedProgram, questionOrder, questionOrderName, questionResults, individualQuestionScores } = req.body;
 
-        // Prefer teamId from authenticated user if available
-        const finalTeamId = teamId || (req.user && (req.user.teamId || req.user.id));
+        // Prefer teamId from request body, fallback to authenticated user
+        const finalTeamId = teamId || (req.user && (req.user.teamId || req.user._id));
         if (!finalTeamId) return res.status(400).json({ message: "teamId required" });
 
         // Save to Team document (update fields for round3)
@@ -22,11 +22,20 @@ export const submitRound3 = async (req, res) => {
                     round3QuestionResults: questionResults,
                     round3IndividualScores: individualQuestionScores,
                     round3Completed: true,
-                    round3SubmittedAt: new Date()
+                    round3SubmittedAt: new Date(),
+                    'scores.round3': score
                 }
             },
             { new: true, runValidators: true }
         );
+
+        // Update total score
+        if (updated) {
+            const totalScore = (updated.scores.round1 || 0) +
+                (updated.scores.round2 || 0) +
+                (updated.scores.round3 || 0);
+            await Team.findByIdAndUpdate(finalTeamId, { 'scores.total': totalScore });
+        }
 
         if (!updated) return res.status(404).json({ message: "Team not found" });
         return res.json({ message: "Round 3 result saved", team: updated });
@@ -54,8 +63,15 @@ export const getRound3Scores = async (req, res) => {
 // @access  Private (Admin)
 export const getAllRound3Results = async (req, res) => {
     try {
-        const teams = await Team.find({ round3Completed: true })
-            .select('teamName members leader round3Score round3Time round3SubmittedAt round3QuestionOrderName round3Program round3QuestionResults round3IndividualScores')
+        // Get teams that are in Round 3 or have completed Round 3
+        const teams = await Team.find({
+            $or: [
+                { competitionStatus: 'Round3' },
+                { competitionStatus: 'Selected' },
+                { round3Completed: true }
+            ]
+        })
+            .select('teamName members leader round3Score round3Time round3SubmittedAt round3QuestionOrderName round3Program round3QuestionResults round3IndividualScores competitionStatus round3Completed')
             .sort({ round3Score: -1, round3Time: 1 });
 
         res.status(200).json({

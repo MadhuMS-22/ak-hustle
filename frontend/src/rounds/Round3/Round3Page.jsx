@@ -79,7 +79,7 @@ const AdminPage = ({ onGoBack }) => {
   useEffect(() => {
     const fetchScores = async () => {
       try {
-        const response = await fetch('http://localhost:5001/api/round3/scores');
+        const response = await fetch('http://localhost:5010/api/round3/scores');
         if (!response.ok) {
           throw new Error(`Failed to fetch scores: ${response.status}`);
         }
@@ -644,7 +644,12 @@ const Round3Page = () => {
     const totalTimeTaken = Math.floor((Date.now() - startTime) / 1000);
 
     try {
+      // Get team data from localStorage
+      const storedTeam = localStorage.getItem('hustle_team');
+      const teamData = storedTeam ? JSON.parse(storedTeam) : null;
+
       await competitionService.submitRound3({
+        teamId: teamData?._id,
         score: currentScore,
         timeTaken: totalTimeTaken,
         selectedProgram: selectedProgram,
@@ -710,7 +715,12 @@ const Round3Page = () => {
     const totalTimeTaken = Math.floor((Date.now() - startTime) / 1000);
 
     try {
+      // Get team data from localStorage
+      const storedTeam = localStorage.getItem('hustle_team');
+      const teamData = storedTeam ? JSON.parse(storedTeam) : null;
+
       await competitionService.submitRound3({
+        teamId: teamData?._id,
         score: newScore,
         timeTaken: totalTimeTaken,
         selectedProgram: selectedProgram,
@@ -884,7 +894,7 @@ const Round3Page = () => {
                   onClick={async () => {
                     // Update team status to Completed
                     try {
-                      const response = await fetch('http://localhost:5001/api/competition/team/status', {
+                      const response = await fetch('http://localhost:5010/api/competition/team/status', {
                         method: 'PATCH',
                         headers: {
                           'Content-Type': 'application/json',

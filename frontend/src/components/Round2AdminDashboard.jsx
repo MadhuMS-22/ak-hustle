@@ -18,7 +18,7 @@ const Round2AdminDashboard = () => {
 
     // Helper function to make admin API calls
     const adminApiCall = async (endpoint, options = {}) => {
-        const url = `${import.meta.env.VITE_API_URL || 'http://localhost:5009/api'}${endpoint}`;
+        const url = `${import.meta.env.VITE_API_URL || 'http://localhost:5010/api'}${endpoint}`;
         const headers = adminAuthService.getAdminHeaders();
 
         const response = await fetch(url, {

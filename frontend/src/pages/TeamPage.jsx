@@ -49,7 +49,7 @@ const TeamPage = () => {
         setLoading(true)
       }
 
-      // Fetch team details with current status
+      // Fetch team details with current status including Round 3 data
       const teamResponse = await apiService.get(`/competition/team/${teamId}`)
       if (teamResponse.success) {
         const team = teamResponse.data.team
@@ -62,14 +62,16 @@ const TeamPage = () => {
           const updatedRounds = {
             round1: {
               status: team.competitionStatus === 'Registered' ? 'pending' :
-                team.competitionStatus === 'Round1' ? 'available' :
+                team.competitionStatus === 'Round1' ? 'available' : // Round 1 is available when team is in Round1 status
                   ['Round2', 'Round3', 'Selected', 'Eliminated'].includes(team.competitionStatus) ? 'completed' : 'locked',
               result: (team.resultsAnnounced && team.competitionStatus !== 'Registered' && team.competitionStatus !== 'Round1') ?
                 (['Round2', 'Round3', 'Selected'].includes(team.competitionStatus) ? true : false) : null,
               score: team.scores?.round1 || null,
               announced: team.resultsAnnounced || false,
               qualified: (team.resultsAnnounced && team.competitionStatus !== 'Registered' && team.competitionStatus !== 'Round1') ?
-                (['Round2', 'Round3', 'Selected'].includes(team.competitionStatus) ? true : false) : null
+                (['Round2', 'Round3', 'Selected'].includes(team.competitionStatus) ? true : false) : null,
+              // Round 1 is unlocked when team status is Round1 or beyond
+              isUnlocked: ['Round1', 'Round2', 'Round3', 'Selected', 'Eliminated'].includes(team.competitionStatus)
             },
             round2: {
               status: team.competitionStatus === 'Round2' ? 'available' :
@@ -84,19 +86,26 @@ const TeamPage = () => {
               qualified: (team.resultsAnnounced && team.competitionStatus !== 'Round2') ?
                 (['Round3', 'Selected'].includes(team.competitionStatus) ? true : false) : null,
               // Check if Round 2 is completed but not yet advanced by admin
-              isCompleted: team.isQuizCompleted || false
+              isCompleted: team.isQuizCompleted || false,
+              // Round 2 is unlocked when Round 1 is completed and results are announced
+              isUnlocked: (team.resultsAnnounced && ['Round2', 'Round3', 'Selected'].includes(team.competitionStatus)) ||
+                team.competitionStatus === 'Round2' ||
+                (team.competitionStatus === 'Round1' && team.resultsAnnounced)
             },
             round3: {
               status: team.competitionStatus === 'Round3' ? 'available' :
                 team.competitionStatus === 'Selected' && team.resultsAnnounced ? 'completed' :
                   team.competitionStatus === 'Eliminated' ? 'completed' : 'locked',
               result: (team.resultsAnnounced && team.competitionStatus === 'Selected') ? true : null,
-              score: team.scores?.round3 || null,
+              score: team.scores?.round3 || team.round3Score || null,
               announced: team.resultsAnnounced || false,
               qualified: (team.resultsAnnounced && team.competitionStatus === 'Selected') ? true : null,
               // Round 3 is unlocked when Round 2 results are announced and team is qualified
               isUnlocked: (team.resultsAnnounced && ['Round3', 'Selected'].includes(team.competitionStatus)) ||
-                team.competitionStatus === 'Round3'
+                team.competitionStatus === 'Round3' ||
+                (team.competitionStatus === 'Round2' && team.resultsAnnounced),
+              // Check if Round 3 is completed but not yet advanced by admin
+              isCompleted: team.round3Completed || false
             }
           }
 
@@ -185,9 +194,24 @@ const TeamPage = () => {
   }
 
   const getRoundStatus = (round, roundNumber) => {
+    // Special handling for Round 1 unlocking
+    if (roundNumber === 1 && round.isUnlocked && round.status === 'pending') {
+      return 'available' // Round 1 unlocked when team status changes to Round1
+    }
+
     // Special handling for Round 2 completion flow
     if (roundNumber === 2 && round.isCompleted && round.status === 'available') {
       return 'submitted' // Round 2 completed but waiting for admin to advance
+    }
+
+    // Special handling for Round 2 unlocking
+    if (roundNumber === 2 && round.isUnlocked && round.status === 'locked') {
+      return 'available' // Round 2 unlocked after Round 1 results announced
+    }
+
+    // Special handling for Round 3 completion flow
+    if (roundNumber === 3 && round.isCompleted && round.status === 'available') {
+      return 'submitted' // Round 3 completed but waiting for admin to advance
     }
 
     // Special handling for Round 3 unlocking
@@ -385,12 +409,7 @@ const TeamPage = () => {
                   </div>
                   <h3 className='text-2xl font-bold text-white'>Round 1: Aptitude</h3>
                   <p className='text-sm font-medium text-gray-300 text-center leading-relaxed'>
-                    {rounds.round1.status === 'pending' ? 'You are registered. Waiting for Round 1 to start.' :
-                      rounds.round1.status === 'available' ? 'You are in Round 1. Please complete your task.' :
-                        rounds.round1.status === 'completed' && !rounds.round1.announced ? 'Round 1 completed. Waiting for results to be announced.' :
-                          rounds.round1.status === 'completed' && rounds.round1.announced ?
-                            (rounds.round1.result === true ? 'Congratulations! You qualified for Round 2! Results have been announced.' : 'Round 1 completed. Better luck next time! Results have been announced.') :
-                            'Locked. Complete previous round to unlock.'}
+                    {getRoundMessage(rounds.round1, 1)}
                   </p>
                 </div>
                 {rounds.round1.status === 'completed' && rounds.round1.announced ? (
@@ -489,6 +508,7 @@ const TeamPage = () => {
                 "bg-red-600/40 border-red-400/50": rounds.round3.status === 'completed' && rounds.round3.result === false && rounds.round3.announced,
                 "bg-orange-600/20 border-orange-400/30": rounds.round3.status === 'available' || (rounds.round3.status === 'completed' && !rounds.round3.announced) || getRoundStatus(rounds.round3, 3) === 'available',
                 "bg-purple-600/20 border-purple-400/30": teamData?.competitionStatus === 'Selected' && !teamData?.resultsAnnounced,
+                "bg-blue-600/20 border-blue-400/30": getRoundStatus(rounds.round3, 3) === 'submitted',
                 "bg-gray-600/20 border-gray-400/30": getRoundStatus(rounds.round3, 3) === 'locked'
               })}>
                 <div className='flex flex-col items-center gap-4'>
@@ -527,6 +547,16 @@ const TeamPage = () => {
                       </div>
                     </div>
                   )
+                ) : getRoundStatus(rounds.round3, 3) === 'submitted' ? (
+                  <div className="text-center">
+                    <div className="text-green-300 text-lg font-bold mb-1">
+                      ✅ SUBMITTED
+                    </div>
+                    <div className="text-gray-300 text-sm">
+                      Response submitted successfully!<br />
+                      Wait for admin to announce results.
+                    </div>
+                  </div>
                 ) : (
                   <button
                     onClick={() => handleStartRound(3)}

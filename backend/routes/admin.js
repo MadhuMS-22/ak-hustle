@@ -698,16 +698,16 @@ const processRoundSelection = async (req, res) => {
         let nextStatus;
         switch (roundNumber) {
             case '1':
-                nextStatus = 'Round2';
+                nextStatus = 'Round1'; // Registered → Round1
                 break;
             case '2':
-                nextStatus = 'Round3';
+                nextStatus = 'Round2'; // Round1 → Round2
                 break;
             case '3':
-                nextStatus = 'Round3';
+                nextStatus = 'Round3'; // Round2 → Round3
                 break;
             case '4':
-                nextStatus = 'Selected';
+                nextStatus = 'Selected'; // Round3 → Selected
                 break;
         }
 

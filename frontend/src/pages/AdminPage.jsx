@@ -55,7 +55,7 @@ const AdminPage = () => {
             throw new Error('Admin not authenticated. Please log in.');
         }
 
-        const url = `${import.meta.env.VITE_API_URL || 'http://localhost:5009/api'}${endpoint}`;
+        const url = `${import.meta.env.VITE_API_URL || 'http://localhost:5010/api'}${endpoint}`;
         const headers = adminAuthService.getAdminHeaders();
 
         const response = await fetch(url, {
@@ -143,6 +143,14 @@ const AdminPage = () => {
             fetchTeamManagementData();
         }
     }, [activeTab, isAuthenticated]);
+
+    // Reset Round 3 view when switching to Round 3 tab
+    useEffect(() => {
+        if (activeTab === 'round3') {
+            setShowPrograms(false);
+            setSelectedTeam(null);
+        }
+    }, [activeTab]);
 
     const fetchData = async () => {
         try {
@@ -517,9 +525,6 @@ const AdminPage = () => {
 
     // Round 3 program viewing functions
     const handleViewPrograms = (team) => {
-        console.log('Viewing programs for team:', team.teamName);
-        console.log('Round 3 Question Results:', team.round3QuestionResults);
-        console.log('Round 3 Individual Scores:', team.round3IndividualScores);
         setSelectedTeam(team);
         setShowPrograms(true);
     };
@@ -1537,7 +1542,7 @@ const AdminPage = () => {
             <div className="p-6">
                 <div className="text-center mb-6">
                     <h1 className="text-3xl font-bold text-white mb-1">
-                        Admin Dashboard
+                        Round 3 Results
                     </h1>
                     <p className="text-base text-gray-300 mb-2">Team Results and Performance Analytics</p>
                     <p className="text-xs text-gray-400">Teams found: {round3Teams.length}</p>

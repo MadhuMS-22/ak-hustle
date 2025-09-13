@@ -25,7 +25,7 @@ class Round3Service {
     // Admin: Fetch all Round 3 results
     async fetchRound3Results() {
         try {
-            const response = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:5009/api'}/round3/admin/results`, {
+            const response = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:5010/api'}/round3/admin/results`, {
                 method: 'GET',
                 headers: adminAuthService.getAdminHeaders()
             });
@@ -45,7 +45,7 @@ class Round3Service {
     // Admin: Set Round 3 score for a team
     async setRound3Score(teamId, score) {
         try {
-            const response = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:5009/api'}/round3/admin/update-score/${teamId}`, {
+            const response = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:5010/api'}/round3/admin/update-score/${teamId}`, {
                 method: 'POST',
                 headers: adminAuthService.getAdminHeaders(),
                 body: JSON.stringify({ score })
