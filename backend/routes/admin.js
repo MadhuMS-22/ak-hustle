@@ -195,19 +195,19 @@ const getCompetitionStats = async (req, res) => {
         const totalTeams = await Team.countDocuments({ isActive: true });
         const registeredTeams = await Team.countDocuments({
             isActive: true,
-            competitionStatus: 'registered'
+            competitionStatus: 'Registered'
         });
         const round1Completed = await Team.countDocuments({
             isActive: true,
-            competitionStatus: { $in: ['round1_completed', 'round2_completed', 'round3_completed'] }
+            competitionStatus: { $in: ['Round1', 'Round2', 'Round3', 'Selected'] }
         });
         const round2Completed = await Team.countDocuments({
             isActive: true,
-            competitionStatus: { $in: ['round2_completed', 'round3_completed'] }
+            competitionStatus: { $in: ['Round2', 'Round3', 'Selected'] }
         });
         const round3Completed = await Team.countDocuments({
             isActive: true,
-            competitionStatus: 'round3_completed'
+            competitionStatus: { $in: ['Round3', 'Selected'] }
         });
 
         // Get round codes

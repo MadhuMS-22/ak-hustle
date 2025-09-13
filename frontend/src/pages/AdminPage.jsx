@@ -17,7 +17,8 @@ const AdminPage = () => {
             round1: 0,
             round2: 0,
             round3: 0,
-            completed: 0,
+            eliminated: 0,
+            selected: 0,
             hasCompletedCycle: 0,
             resultsAnnounced: 0
         }
@@ -45,6 +46,7 @@ const AdminPage = () => {
     const [newRoundCodes, setNewRoundCodes] = useState({ round2: '', round3: '' });
     const [settingCode, setSettingCode] = useState({ round2: false, round3: false });
     const [loading, setLoading] = useState(true);
+    const [dataLoading, setDataLoading] = useState(true);
 
     // Helper function to make admin API calls
     const adminApiCall = async (endpoint, options = {}) => {
@@ -135,15 +137,49 @@ const AdminPage = () => {
         }
     };
 
+    // Force refresh team management data when switching tabs
+    useEffect(() => {
+        if (activeTab === 'teamManagement' && isAuthenticated) {
+            fetchTeamManagementData();
+        }
+    }, [activeTab, isAuthenticated]);
+
     const fetchData = async () => {
         try {
             setLoading(true);
+
+            // Clear all cached data first
+            setTeams([]);
+            setStats({
+                totalTeams: 0,
+                registeredTeams: 0,
+                round1Completed: 0,
+                round2Completed: 0,
+                round3Completed: 0
+            });
+            setTeamManagementData({
+                teams: [],
+                stats: {
+                    totalTeams: 0,
+                    registered: 0,
+                    round1: 0,
+                    round2: 0,
+                    round3: 0,
+                    eliminated: 0,
+                    selected: 0,
+                    hasCompletedCycle: 0,
+                    resultsAnnounced: 0
+                }
+            });
+
             // Fetch teams from admin endpoint
             const teamsResponse = await adminApiCall('/admin/teams');
+            console.log('Teams response:', teamsResponse);
             setTeams(teamsResponse.data.teams || []);
 
             // Fetch competition stats and round codes from admin endpoint
             const statsResponse = await adminApiCall('/admin/stats');
+            console.log('Stats response:', statsResponse);
             setStats(statsResponse.data.stats);
             setRoundCodes(statsResponse.data.roundCodes);
 
@@ -175,98 +211,28 @@ const AdminPage = () => {
             await fetchTeamManagementData();
         } catch (error) {
             console.error('Error fetching data:', error);
-            // For demo purposes, use mock data
-            setTeams([
-                {
-                    _id: "64a1b2c3d4e5f6789012345a",
-                    teamName: "Team Alpha",
-                    members: {
-                        member1: { name: "John Doe", email: "john@example.com" },
-                        member2: { name: "Jane Smith", email: "jane@example.com" }
-                    },
-                    leader: "member1",
-                    leaderPhone: "+1234567890",
-                    competitionStatus: "registered",
-                    scores: { round1: 85, round2: 0, round3: 0, total: 85 },
-                    isActive: true,
-                    registrationDate: new Date('2024-01-15T10:30:00Z'),
-                    lastLogin: new Date('2024-01-20T14:22:00Z')
-                },
-                {
-                    _id: "64a1b2c3d4e5f6789012345b",
-                    teamName: "Team Beta",
-                    members: {
-                        member1: { name: "Alice Johnson", email: "alice@example.com" },
-                        member2: { name: "Bob Wilson", email: "bob@example.com" }
-                    },
-                    leader: "member2",
-                    leaderPhone: "+1234567891",
-                    competitionStatus: "round1_completed",
-                    scores: { round1: 92, round2: 0, round3: 0, total: 92 },
-                    isActive: true,
-                    registrationDate: new Date('2024-01-16T09:15:00Z'),
-                    lastLogin: new Date('2024-01-21T16:45:00Z')
-                },
-                {
-                    _id: "64a1b2c3d4e5f6789012345c",
-                    teamName: "Team Gamma",
-                    members: {
-                        member1: { name: "Charlie Brown", email: "charlie@example.com" },
-                        member2: { name: "Diana Prince", email: "diana@example.com" }
-                    },
-                    leader: "member1",
-                    leaderPhone: "+1234567892",
-                    competitionStatus: "round2_completed",
-                    scores: { round1: 78, round2: 88, round3: 0, total: 166 },
-                    isActive: true,
-                    registrationDate: new Date('2024-01-17T11:20:00Z'),
-                    lastLogin: new Date('2024-01-22T13:30:00Z')
-                },
-                {
-                    _id: "64a1b2c3d4e5f6789012345d",
-                    teamName: "Team Delta",
-                    members: {
-                        member1: { name: "Eve Adams", email: "eve@example.com" },
-                        member2: { name: "Frank Miller", email: "frank@example.com" }
-                    },
-                    leader: "member2",
-                    leaderPhone: "+1234567893",
-                    competitionStatus: "round3_completed",
-                    scores: { round1: 90, round2: 95, round3: 88, total: 273 },
-                    isActive: true,
-                    registrationDate: new Date('2024-01-18T08:45:00Z'),
-                    lastLogin: new Date('2024-01-23T15:20:00Z')
-                },
-                {
-                    _id: "64a1b2c3d4e5f6789012345e",
-                    teamName: "Team Echo",
-                    members: {
-                        member1: { name: "Grace Lee", email: "grace@example.com" },
-                        member2: { name: "Henry Kim", email: "henry@example.com" }
-                    },
-                    leader: "member1",
-                    leaderPhone: "+1234567894",
-                    competitionStatus: "disqualified",
-                    scores: { round1: 45, round2: 0, round3: 0, total: 45 },
-                    isActive: false,
-                    registrationDate: new Date('2024-01-19T12:10:00Z'),
-                    lastLogin: new Date('2024-01-24T10:15:00Z')
-                }
-            ]);
+            // Show empty state instead of mock data
+            setTeams([]);
             setStats({
-                totalTeams: 5,
-                registeredTeams: 1,
-                round1Completed: 4,
-                round2Completed: 2,
-                round3Completed: 1
+                totalTeams: 0,
+                registeredTeams: 0,
+                round1Completed: 0,
+                round2Completed: 0,
+                round3Completed: 0
             });
-            setRoundCodes({
-                round2: 'CODE123',
-                round3: 'FINAL456'
-            });
-            setRoundCodeStats({
-                round2: { usageCount: 5, completionCount: 3 },
-                round3: { usageCount: 2, completionCount: 1 }
+            setTeamManagementData({
+                teams: [],
+                stats: {
+                    totalTeams: 0,
+                    registered: 0,
+                    round1: 0,
+                    round2: 0,
+                    round3: 0,
+                    eliminated: 0,
+                    selected: 0,
+                    hasCompletedCycle: 0,
+                    resultsAnnounced: 0
+                }
             });
         } finally {
             setLoading(false);
@@ -525,42 +491,8 @@ const AdminPage = () => {
                 return;
             }
 
-            // Use mock data for demo
-            setRound3Teams([
-                {
-                    _id: '1',
-                    teamName: 'Team Alpha',
-                    members: { member1: { name: 'John Doe' }, member2: { name: 'Jane Smith' } },
-                    leader: 'member1',
-                    round3Score: 85,
-                    round3Time: 1200,
-                    round3SubmittedAt: new Date().toISOString(),
-                    round3QuestionOrderName: 'Order A',
-                    round3Program: 'Python'
-                },
-                {
-                    _id: '2',
-                    teamName: 'Team Beta',
-                    members: { member1: { name: 'Alice Johnson' }, member2: { name: 'Bob Wilson' } },
-                    leader: 'member2',
-                    round3Score: 92,
-                    round3Time: 980,
-                    round3SubmittedAt: new Date().toISOString(),
-                    round3QuestionOrderName: 'Order B',
-                    round3Program: 'Java'
-                },
-                {
-                    _id: '3',
-                    teamName: 'Team Gamma',
-                    members: { member1: { name: 'Charlie Brown' }, member2: { name: 'Diana Prince' } },
-                    leader: 'member1',
-                    round3Score: 78,
-                    round3Time: 1350,
-                    round3SubmittedAt: new Date().toISOString(),
-                    round3QuestionOrderName: 'Order C',
-                    round3Program: 'C++'
-                }
-            ]);
+            // Set empty array on error - no mock data
+            setRound3Teams([]);
         } finally {
             setRound3Loading(false);
         }
@@ -637,7 +569,16 @@ const AdminPage = () => {
     // Team Management Functions
     const fetchTeamManagementData = async () => {
         try {
+            setDataLoading(true);
+            // Reset announced rounds state
+            setAnnouncedRounds({
+                round1: false,
+                round2: false,
+                round3: false
+            });
+
             const response = await adminApiCall('/admin/teamManagement');
+            console.log('Team Management response:', response);
             if (response.success) {
                 setTeamManagementData(response.data);
 
@@ -661,25 +602,30 @@ const AdminPage = () => {
             }
         } catch (error) {
             console.error('Error fetching team management data:', error);
-            // Use mock data for demo
+            // Reset announced rounds when API fails
+            setAnnouncedRounds({
+                round1: false,
+                round2: false,
+                round3: false
+            });
+
+            // Show empty state instead of null
             setTeamManagementData({
-                teams: teams.map(team => ({
-                    ...team,
-                    hasCompletedCycle: false,
-                    resultsAnnounced: false
-                })),
+                teams: [],
                 stats: {
-                    totalTeams: teams.length,
-                    registered: teams.filter(t => t.competitionStatus === 'Registered').length,
-                    round1: teams.filter(t => t.competitionStatus === 'Round1').length,
-                    round2: teams.filter(t => t.competitionStatus === 'Round2').length,
-                    round3: teams.filter(t => t.competitionStatus === 'Round3').length,
-                    eliminated: teams.filter(t => t.competitionStatus === 'Eliminated').length,
-                    selected: teams.filter(t => t.competitionStatus === 'Selected').length,
+                    totalTeams: 0,
+                    registered: 0,
+                    round1: 0,
+                    round2: 0,
+                    round3: 0,
+                    eliminated: 0,
+                    selected: 0,
                     hasCompletedCycle: 0,
                     resultsAnnounced: 0
                 }
             });
+        } finally {
+            setDataLoading(false);
         }
     };
 
@@ -814,6 +760,13 @@ const AdminPage = () => {
 
                 await Promise.all(resetPromises);
 
+                // Reset announced rounds state
+                setAnnouncedRounds({
+                    round1: false,
+                    round2: false,
+                    round3: false
+                });
+
                 alert('All teams have been reset successfully! All teams are now back to "Registered" status.');
                 setSelectedTeams([]);
                 await fetchTeamManagementData();
@@ -823,6 +776,32 @@ const AdminPage = () => {
             alert('Error resetting all teams. Please try again.');
         } finally {
             setSelectionLoading(false);
+        }
+    };
+
+    const handleResetAnnouncedRounds = () => {
+        if (window.confirm('Are you sure you want to reset the announced rounds state? This will unlock all "Announce Results" buttons.')) {
+            setAnnouncedRounds({
+                round1: false,
+                round2: false,
+                round3: false
+            });
+            alert('Announced rounds state has been reset! All "Announce Results" buttons are now unlocked.');
+        }
+    };
+
+    const handleRefreshData = async () => {
+        try {
+            setSelectionLoading(true);
+            setDataLoading(true);
+            await fetchTeamManagementData();
+            alert('Data refreshed successfully! Fresh data loaded from database.');
+        } catch (error) {
+            console.error('Error refreshing data:', error);
+            alert('Error refreshing data. Please try again.');
+        } finally {
+            setSelectionLoading(false);
+            setDataLoading(false);
         }
     };
 
@@ -1097,6 +1076,12 @@ const AdminPage = () => {
                     Team Management
                 </h1>
                 <p className="text-lg text-gray-300">Manage registered teams and their competition status</p>
+                {dataLoading && (
+                    <div className="flex justify-center items-center mt-4 text-blue-400">
+                        <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-400 mr-3"></div>
+                        Loading fresh data from database...
+                    </div>
+                )}
             </div>
 
 
@@ -1104,27 +1089,27 @@ const AdminPage = () => {
             <div className="grid grid-cols-1 md:grid-cols-6 gap-4 mb-8">
                 <div className="bg-gradient-to-br from-blue-600/20 to-blue-800/20 backdrop-blur-sm border border-blue-400/30 rounded-xl p-4 text-center">
                     <p className="text-sm text-gray-300 mb-1">Total Teams</p>
-                    <p className="text-3xl font-bold text-white">{teamManagementData.stats.totalTeams}</p>
+                    <p className="text-3xl font-bold text-white">{teamManagementData?.stats?.totalTeams || 0}</p>
                 </div>
                 <div className="bg-gradient-to-br from-green-600/20 to-green-800/20 backdrop-blur-sm border border-green-400/30 rounded-xl p-4 text-center">
                     <p className="text-sm text-gray-300 mb-1">Registered</p>
-                    <p className="text-3xl font-bold text-white">{teamManagementData.stats.registered}</p>
+                    <p className="text-3xl font-bold text-white">{teamManagementData?.stats?.registered || 0}</p>
                 </div>
                 <div className="bg-gradient-to-br from-purple-600/20 to-purple-800/20 backdrop-blur-sm border border-purple-400/30 rounded-xl p-4 text-center">
                     <p className="text-sm text-gray-300 mb-1">Round 2</p>
-                    <p className="text-3xl font-bold text-white">{teamManagementData.stats.round2}</p>
+                    <p className="text-3xl font-bold text-white">{teamManagementData?.stats?.round2 || 0}</p>
                 </div>
                 <div className="bg-gradient-to-br from-orange-600/20 to-orange-800/20 backdrop-blur-sm border border-orange-400/30 rounded-xl p-4 text-center">
                     <p className="text-sm text-gray-300 mb-1">Round 3</p>
-                    <p className="text-3xl font-bold text-white">{teamManagementData.stats.round3}</p>
+                    <p className="text-3xl font-bold text-white">{teamManagementData?.stats?.round3 || 0}</p>
                 </div>
                 <div className="bg-gradient-to-br from-red-600/20 to-red-800/20 backdrop-blur-sm border border-red-400/30 rounded-xl p-4 text-center">
                     <p className="text-sm text-gray-300 mb-1">Eliminated</p>
-                    <p className="text-3xl font-bold text-white">{teamManagementData.stats.eliminated}</p>
+                    <p className="text-3xl font-bold text-white">{teamManagementData?.stats?.eliminated || 0}</p>
                 </div>
                 <div className="bg-gradient-to-br from-emerald-600/20 to-emerald-800/20 backdrop-blur-sm border border-emerald-400/30 rounded-xl p-4 text-center">
                     <p className="text-sm text-gray-300 mb-1">Selected</p>
-                    <p className="text-3xl font-bold text-white">{teamManagementData.stats.selected}</p>
+                    <p className="text-3xl font-bold text-white">{teamManagementData?.stats?.selected || 0}</p>
                 </div>
             </div>
 
@@ -1211,7 +1196,7 @@ const AdminPage = () => {
                             </tr>
                         </thead>
                         <tbody>
-                            {teamManagementData.teams
+                            {(teamManagementData?.teams || [])
                                 .filter(team => {
                                     const matchesSearch = searchTerm === '' ||
                                         team.teamName.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -1286,8 +1271,15 @@ const AdminPage = () => {
                     </table>
                 </div>
 
-                {/* Reset All Teams Button */}
-                <div className="mt-6 flex justify-center">
+                {/* Control Buttons */}
+                <div className="mt-6 flex justify-center gap-4">
+                    <button
+                        onClick={handleRefreshData}
+                        disabled={selectionLoading}
+                        className="bg-blue-600 hover:bg-blue-700 disabled:bg-gray-600 disabled:cursor-not-allowed text-white px-6 py-3 rounded-lg transition-colors font-medium"
+                    >
+                        {selectionLoading ? 'Refreshing...' : '🔄 Refresh Data'}
+                    </button>
                     <button
                         onClick={handleResetAllTeams}
                         disabled={selectionLoading}
@@ -1295,10 +1287,16 @@ const AdminPage = () => {
                     >
                         {selectionLoading ? 'Processing...' : 'Reset All Teams'}
                     </button>
+                    <button
+                        onClick={handleResetAnnouncedRounds}
+                        className="bg-orange-600 hover:bg-orange-700 text-white px-6 py-3 rounded-lg transition-colors font-medium"
+                    >
+                        Reset Announced Rounds
+                    </button>
                 </div>
 
                 {/* No teams found message */}
-                {teams.filter(team => {
+                {(teamManagementData?.teams || []).filter(team => {
                     const matchesSearch = searchTerm === '' ||
                         team.teamName.toLowerCase().includes(searchTerm.toLowerCase()) ||
                         team.members?.member1?.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -1540,127 +1538,121 @@ const AdminPage = () => {
 
         // Main Round 3 results view
         return (
-            <div className="p-8">
-                <div className="text-center mb-8">
-                    <h1 className="text-4xl font-bold text-white mb-4 bg-gradient-to-r from-white to-blue-200 bg-clip-text text-transparent">
-                        Round 3 Admin Dashboard
+            <div className="p-6">
+                <div className="text-center mb-6">
+                    <h1 className="text-3xl font-bold text-white mb-1">
+                        Admin Dashboard
                     </h1>
-                    <p className="text-lg text-gray-300">Manage Round 3 results and scores</p>
+                    <p className="text-base text-gray-300 mb-2">Team Results and Performance Analytics</p>
+                    <p className="text-xs text-gray-400">Teams found: {round3Teams.length}</p>
                 </div>
 
 
-                {/* Round 3 Results */}
+                {/* Round 3 Results - Compact Card Layout */}
                 {round3Teams.length === 0 ? (
                     <div className="text-center py-8">
-                        <p className="text-gray-400 text-xl">No team scores recorded yet.</p>
+                        <div className="bg-gray-800/50 backdrop-blur-sm border border-gray-600/30 rounded-lg p-8">
+                            <p className="text-gray-400 text-lg mb-2">No Round 3 submissions found</p>
+                            <p className="text-gray-500 text-sm">Teams need to complete Round 3 to appear here</p>
+                        </div>
                     </div>
                 ) : (
-                    <div className="space-y-6">
+                    <div className="space-y-3">
                         {round3Teams.map((team, index) => {
                             const rank = index + 1;
-                            const questionsSolved = (team.round3IndividualScores || []).filter(q => q.score > 0).length;
-                            const percentage = Math.round(((team.round3Score || 0) / maxPossibleScore) * 100);
+
+                            // Get individual question scores for Q1-Q5
+                            const q1Score = (team.round3IndividualScores || []).find(q => q.questionIndex === 0)?.score || 0;
+                            const q2Score = (team.round3IndividualScores || []).find(q => q.questionIndex === 1)?.score || 0;
+                            const q3Score = (team.round3IndividualScores || []).find(q => q.questionIndex === 2)?.score || 0;
+                            const q4Score = (team.round3IndividualScores || []).find(q => q.questionIndex === 3)?.score || 0;
+                            const q5Score = (team.round3IndividualScores || []).find(q => q.questionIndex === 4)?.score || 0;
 
                             return (
-                                <div key={team._id || index} className="bg-gray-700 rounded-lg p-6 relative">
-                                    {/* Ranking Badge */}
-                                    <div className="absolute -top-2 -left-2 w-12 h-12 bg-gradient-to-r from-yellow-400 to-yellow-600 rounded-full flex items-center justify-center text-black font-bold text-lg shadow-lg">
-                                        #{rank}
-                                    </div>
-
-                                    <div className="flex justify-between items-start mb-4">
-                                        <div className="ml-4">
-                                            <h2 className="text-2xl font-bold text-indigo-400">{team.teamName || 'Unknown Team'}</h2>
-                                            <p className="text-gray-300">Leader: {getLeaderName(team)}</p>
-                                            <p className="text-gray-300">Submitted: {team.round3SubmittedAt ? new Date(team.round3SubmittedAt).toLocaleString() : 'Unknown'}</p>
-                                            <div className="flex items-center gap-2 mt-1">
-                                                <span className={`px-2 py-1 rounded text-xs font-semibold ${(team.round3Score || 0) === maxPossibleScore ? 'bg-green-600 text-white' : 'bg-yellow-600 text-black'}`}>
-                                                    {(team.round3Score || 0) === maxPossibleScore ? 'Complete' : 'Partial'}
-                                                </span>
-                                                <span className="text-sm text-gray-400">
-                                                    {team.round3Score || 0}/{maxPossibleScore} points ({percentage}%)
-                                                </span>
-                                                <span className="text-sm text-blue-400">
-                                                    {questionsSolved}/5 questions solved
-                                                </span>
-                                                <span className="text-sm text-purple-400 bg-purple-900/30 px-2 py-1 rounded">
-                                                    Order: {team.round3QuestionOrderName || 'Unknown'}
-                                                </span>
+                                <div key={team._id || index} className="bg-gray-800/50 backdrop-blur-sm border border-gray-600/30 rounded-lg p-4 hover:bg-gray-800/70 transition-colors">
+                                    <div className="flex items-center justify-between">
+                                        {/* Left Area: Submission Information */}
+                                        <div className="flex-1 min-w-0">
+                                            <div className="flex items-center gap-3">
+                                                <button className="bg-indigo-600 hover:bg-indigo-700 text-white px-3 py-1.5 rounded-md text-sm font-semibold">
+                                                    #{rank} - {team.teamName || 'Unknown Team'}
+                                                </button>
+                                                <div className="text-xs text-gray-400">
+                                                    <div>{team.round3SubmittedAt ? new Date(team.round3SubmittedAt).toLocaleString() : 'Unknown'}</div>
+                                                    <div>Order: {team.round3QuestionOrderName || 'Unknown'}</div>
+                                                </div>
                                             </div>
                                         </div>
-                                        <div className="text-right">
-                                            <p className="text-3xl font-bold text-green-400">Score: {team.round3Score || 0}</p>
-                                            <p className="text-lg text-yellow-400">Time: {formatTime(team.round3Time || 0)}</p>
-                                            <p className="text-sm text-gray-400">Rank #{rank}</p>
-                                        </div>
-                                    </div>
 
-                                    <div className="mb-4">
-                                        <h3 className="text-lg font-semibold text-blue-400 mb-2">Individual Question Scores:</h3>
-                                        <div className="grid grid-cols-5 gap-2">
-                                            {team.round3IndividualScores && team.round3IndividualScores.length > 0 ? (
-                                                team.round3IndividualScores.map((qScore, qIndex) => (
-                                                    <div key={qIndex} className="bg-gray-600 p-2 rounded text-center">
-                                                        <div className="text-sm text-gray-300">Q{(qScore.questionIndex || qIndex) + 1}</div>
-                                                        <div className="font-bold text-green-400">{qScore.score || 0}</div>
-                                                        <div className="text-xs text-yellow-400">{qScore.timeTaken || 0}s</div>
-                                                    </div>
-                                                ))
-                                            ) : (
-                                                <div className="col-span-5 text-center text-gray-400 py-4">
-                                                    No individual question scores available
-                                                </div>
-                                            )}
-                                        </div>
-                                    </div>
-
-                                    <div className="flex justify-between items-center">
-                                        <div className="flex items-center space-x-2">
-                                            {editingScore === team._id ? (
-                                                <>
-                                                    <input
-                                                        type="number"
-                                                        value={newScore}
-                                                        onChange={(e) => setNewScore(e.target.value)}
-                                                        className="w-20 px-2 py-1 bg-gray-600 border border-gray-500 rounded text-white text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-                                                        min="0"
-                                                        max="100"
-                                                    />
-                                                    <button
-                                                        onClick={() => handleUpdateScore(team._id)}
-                                                        disabled={updating}
-                                                        className="bg-green-600 hover:bg-green-700 disabled:bg-gray-600 text-white text-xs px-2 py-1 rounded transition-colors"
-                                                    >
-                                                        {updating ? '...' : 'Save'}
-                                                    </button>
-                                                    <button
-                                                        onClick={handleCancelEdit}
-                                                        className="bg-gray-600 hover:bg-gray-700 text-white text-xs px-2 py-1 rounded transition-colors"
-                                                    >
-                                                        Cancel
-                                                    </button>
-                                                </>
-                                            ) : (
-                                                <button
-                                                    onClick={() => handleEditScore(team._id, team.round3Score)}
-                                                    className="bg-blue-600 hover:bg-blue-700 text-white text-xs px-3 py-1 rounded transition-colors"
-                                                >
-                                                    Edit Score
+                                        {/* Middle Area: Order ID and Question Scores */}
+                                        <div className="flex-1 px-4">
+                                            <div className="flex items-center gap-3">
+                                                <button className="bg-purple-600 hover:bg-purple-700 text-white px-3 py-1.5 rounded-md text-sm font-semibold">
+                                                    Order ID: {team.round3QuestionOrderName?.replace('Order ', '') || 'Unknown'}
                                                 </button>
-                                            )}
+                                                <div className="flex gap-1.5">
+                                                    <div className={`w-8 h-8 rounded text-center flex flex-col justify-center ${q1Score > 0 ? 'bg-emerald-600 text-white' : 'bg-gray-600 text-gray-300'}`}>
+                                                        <div className="text-xs leading-none">Q1</div>
+                                                        <div className="text-xs font-bold leading-none">{q1Score}</div>
+                                                    </div>
+                                                    <div className={`w-8 h-8 rounded text-center flex flex-col justify-center ${q2Score > 0 ? 'bg-emerald-600 text-white' : 'bg-gray-600 text-gray-300'}`}>
+                                                        <div className="text-xs leading-none">Q2</div>
+                                                        <div className="text-xs font-bold leading-none">{q2Score}</div>
+                                                    </div>
+                                                    <div className={`w-8 h-8 rounded text-center flex flex-col justify-center ${q3Score > 0 ? 'bg-emerald-600 text-white' : 'bg-gray-600 text-gray-300'}`}>
+                                                        <div className="text-xs leading-none">Q3</div>
+                                                        <div className="text-xs font-bold leading-none">{q3Score}</div>
+                                                    </div>
+                                                    <div className={`w-8 h-8 rounded text-center flex flex-col justify-center ${q4Score > 0 ? 'bg-emerald-600 text-white' : 'bg-gray-600 text-gray-300'}`}>
+                                                        <div className="text-xs leading-none">Q4</div>
+                                                        <div className="text-xs font-bold leading-none">{q4Score}</div>
+                                                    </div>
+                                                    <div className={`w-8 h-8 rounded text-center flex flex-col justify-center ${q5Score > 0 ? 'bg-emerald-600 text-white' : 'bg-gray-600 text-gray-300'}`}>
+                                                        <div className="text-xs leading-none">Q5</div>
+                                                        <div className="text-xs font-bold leading-none">{q5Score}</div>
+                                                    </div>
+                                                </div>
+                                            </div>
                                         </div>
-                                        <button
-                                            onClick={() => handleViewPrograms(team)}
-                                            className="bg-purple-600 hover:bg-purple-700 text-white font-bold py-2 px-4 rounded-full transition duration-300 transform hover:scale-105"
-                                        >
-                                            View All Programs
-                                        </button>
+
+                                        {/* Right Area: Performance Metrics and Action Button */}
+                                        <div className="flex-1">
+                                            <div className="flex items-center justify-between">
+                                                <div className="text-xs space-y-0.5">
+                                                    <div className="text-blue-400">
+                                                        Score: <span className="font-bold text-white">{team.round3Score || 0}</span>
+                                                    </div>
+                                                    <div className="text-yellow-400">
+                                                        Time: <span className="font-bold text-white">{formatTime(team.round3Time || 0)}</span>
+                                                    </div>
+                                                    <div className="text-blue-400">
+                                                        Rank: <span className="font-bold text-white">#{rank}</span>
+                                                    </div>
+                                                </div>
+                                                <button
+                                                    onClick={() => handleViewPrograms(team)}
+                                                    className="bg-purple-600 hover:bg-purple-700 text-white font-semibold py-1.5 px-3 rounded-md text-sm transition duration-200"
+                                                >
+                                                    View Program
+                                                </button>
+                                            </div>
+                                        </div>
                                     </div>
                                 </div>
                             );
                         })}
                     </div>
                 )}
+
+                {/* Back to Game Button */}
+                <div className="text-center mt-6">
+                    <button
+                        onClick={() => navigate('/')}
+                        className="bg-purple-600 hover:bg-purple-700 text-white font-semibold py-2 px-4 rounded-md text-sm transition duration-200"
+                    >
+                        Back to Game
+                    </button>
+                </div>
             </div>
         );
     };
