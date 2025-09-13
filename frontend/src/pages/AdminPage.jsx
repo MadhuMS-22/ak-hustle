@@ -606,7 +606,7 @@ const AdminPage = () => {
                 });
                 if (response.success) {
                     alert('Team progress reset successfully!');
-                    await fetchTeamManagementData();
+                    await fetchData(); // Refresh all data, not just team management
                 } else {
                     alert('Error resetting team progress');
                 }
@@ -735,7 +735,7 @@ const AdminPage = () => {
 
                     alert(`All teams have been reset successfully! ${response.data.teamsReset} teams are now back to "Registered" status.`);
                     setSelectedTeams([]);
-                    await fetchTeamManagementData();
+                    await fetchData(); // Refresh all data, not just team management
                 } else {
                     alert('Error resetting all teams. Please try again.');
                 }
@@ -766,8 +766,8 @@ const AdminPage = () => {
                         round3: false
                     });
 
-                    // Refresh team data to get updated resultsAnnounced status
-                    await fetchTeamManagementData();
+                    // Refresh all data to get updated resultsAnnounced status
+                    await fetchData();
 
                     alert(`Announced results reset successfully! ${response.data.teamsUpdated} teams updated. All "Announce Results" buttons are now unlocked.`);
                 } else {
@@ -786,7 +786,7 @@ const AdminPage = () => {
         try {
             setSelectionLoading(true);
             setDataLoading(true);
-            await fetchTeamManagementData();
+            await fetchData(); // Refresh all data
             alert('Data refreshed successfully! Fresh data loaded from database.');
         } catch (error) {
             console.error('Error refreshing data:', error);
@@ -816,7 +816,7 @@ const AdminPage = () => {
                         [`round${roundNumber}`]: true
                     }));
 
-                    await fetchTeamManagementData();
+                    await fetchData(); // Refresh all data
                 } else {
                     alert('Error announcing results. Please try again.');
                 }

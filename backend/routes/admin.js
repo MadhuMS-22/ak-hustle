@@ -860,7 +860,17 @@ const resetTeam = async (req, res) => {
                     q1: 0,
                     q2: 0,
                     q3: 0
-                }
+                },
+                // Reset Round 3 specific fields
+                round3Score: 0,
+                round3Time: 0,
+                round3Program: '',
+                round3QuestionOrder: null,
+                round3QuestionOrderName: '',
+                round3QuestionResults: [],
+                round3IndividualScores: [],
+                round3Completed: false,
+                round3SubmittedAt: null
             },
             { new: true }
         ).select('-password');
@@ -942,12 +952,22 @@ const resetAllTeams = async (req, res) => {
                     q1: 0,
                     q2: 0,
                     q3: 0
-                }
+                },
+                // Reset Round 3 specific fields
+                round3Score: 0,
+                round3Time: 0,
+                round3Program: '',
+                round3QuestionOrder: null,
+                round3QuestionOrderName: '',
+                round3QuestionResults: [],
+                round3IndividualScores: [],
+                round3Completed: false,
+                round3SubmittedAt: null
             }
         );
 
         // Delete all submissions
-        await Submission.deleteMany({});
+        await Submission.deleteMany();
 
         res.status(200).json({
             success: true,
