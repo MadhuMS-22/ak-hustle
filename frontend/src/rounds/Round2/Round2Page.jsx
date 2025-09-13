@@ -76,11 +76,14 @@ const Round2Page = () => {
     };
 
     const handleStartRound2 = () => {
-        setIsQuizStarted(true);
-        // Set the first question as current
-        if (teamProgress?.unlockedQuestions.q1) {
-            setCurrentQuestion(0);
+        if (!teamId) {
+            alert('Team ID not found. Please log in again.');
+            navigate('/login');
+            return;
         }
+        setIsQuizStarted(true);
+        // Set the first question as current (Q1 is always unlocked by default)
+        setCurrentQuestion(0);
     };
 
     const handleAptSubmit = async (selected) => {
@@ -353,7 +356,7 @@ const Round2Page = () => {
             </div>
 
             <div className="flex-1 overflow-y-auto">
-                {!isQuizStarted ? (
+                {!isQuizStarted || !teamId ? (
                     <ChallengeSelection onStart={handleStartRound2} teamProgress={teamProgress} />
                 ) : currentChallenge ? (
                     currentChallenge === 'debug' ? (

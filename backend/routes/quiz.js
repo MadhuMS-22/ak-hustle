@@ -40,6 +40,14 @@ router.post('/apt/answer', async (req, res) => {
     try {
         const { teamId, step, selected } = req.body;
 
+        // Debug logging
+        console.log('Aptitude submission received:', { teamId, step, selected });
+        console.log('Request body:', req.body);
+
+        if (!teamId) {
+            return res.status(400).json({ error: 'Team ID is required' });
+        }
+
         const team = await Team.findById(teamId);
         if (!team) {
             return res.status(404).json({ error: 'Team not found' });
