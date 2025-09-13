@@ -689,12 +689,16 @@ const AdminPage = () => {
                 case 'Round2':
                     roundNumber = 3;
                     break;
+                case 'Round3':
+                    roundNumber = 4; // This will advance to Selected status
+                    break;
                 default:
                     alert('Selected teams cannot be advanced');
                     return;
             }
 
-            if (window.confirm(`Are you sure you want to advance ${selectedTeams.length} teams to Round ${roundNumber} and eliminate the rest?`)) {
+            const roundName = roundNumber === 4 ? 'Selected' : `Round ${roundNumber}`;
+            if (window.confirm(`Are you sure you want to advance ${selectedTeams.length} teams to ${roundName} and eliminate the rest?`)) {
                 setSelectionLoading(true);
                 const response = await adminApiCall(`/admin/round/${roundNumber}/select`, {
                     method: 'POST',
@@ -702,7 +706,7 @@ const AdminPage = () => {
                 });
 
                 if (response.success) {
-                    alert(`Round ${roundNumber} selection completed! ${response.data.selectedCount} teams advanced, ${response.data.eliminatedCount} teams eliminated.`);
+                    alert(`${roundName} selection completed! ${response.data.selectedCount} teams advanced, ${response.data.eliminatedCount} teams eliminated.`);
                     setSelectedTeams([]);
                     await fetchTeamManagementData();
                 } else {

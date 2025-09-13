@@ -679,7 +679,7 @@ const processRoundSelection = async (req, res) => {
     try {
         const { roundNumber } = req.params;
         const { selectedTeamIds } = req.body;
-        const validRounds = ['1', '2', '3'];
+        const validRounds = ['1', '2', '3', '4'];
 
         if (!validRounds.includes(roundNumber)) {
             return res.status(400).json({
@@ -704,6 +704,9 @@ const processRoundSelection = async (req, res) => {
                 nextStatus = 'Round3';
                 break;
             case '3':
+                nextStatus = 'Round3';
+                break;
+            case '4':
                 nextStatus = 'Selected';
                 break;
         }
@@ -719,6 +722,9 @@ const processRoundSelection = async (req, res) => {
                 break;
             case '3':
                 currentStatus = 'Round2';
+                break;
+            case '4':
+                currentStatus = 'Round3';
                 break;
         }
 
