@@ -9,6 +9,24 @@ const AdminPage = () => {
     const navigate = useNavigate();
     const [activeTab, setActiveTab] = useState('dashboard');
     const [teams, setTeams] = useState([]);
+    const [teamManagementData, setTeamManagementData] = useState({
+        teams: [],
+        stats: {
+            totalTeams: 0,
+            registered: 0,
+            round1: 0,
+            round2: 0,
+            round3: 0,
+            completed: 0,
+            hasCompletedCycle: 0,
+            resultsAnnounced: 0
+        }
+    });
+    const [announcedRounds, setAnnouncedRounds] = useState({
+        round1: false,
+        round2: false,
+        round3: false
+    });
     const [stats, setStats] = useState({
         totalTeams: 0,
         registeredTeams: 0,
@@ -71,6 +89,10 @@ const AdminPage = () => {
     const [showPrograms, setShowPrograms] = useState(false);
     const [round3Error, setRound3Error] = useState(null);
     const [round3Loading, setRound3Loading] = useState(false);
+
+    // Team selection state
+    const [selectedTeams, setSelectedTeams] = useState([]);
+    const [selectionLoading, setSelectionLoading] = useState(false);
 
     // Maximum possible score for Round 3 (calculated from questions - 36 puzzle blocks total)
     const maxPossibleScore = 36;
@@ -148,6 +170,9 @@ const AdminPage = () => {
 
             // Fetch Round 3 results
             await fetchRound3Results();
+
+            // Fetch team management data
+            await fetchTeamManagementData();
         } catch (error) {
             console.error('Error fetching data:', error);
             // For demo purposes, use mock data
@@ -260,15 +285,6 @@ const AdminPage = () => {
         }
     };
 
-    const handleAnnounceRound = async (roundNumber) => {
-        try {
-            const response = await adminApiCall(`/admin/announce/${roundNumber}`, { method: 'POST' });
-            alert(response.message || `Round ${roundNumber} results announced!`);
-        } catch (error) {
-            console.error(`Error announcing round ${roundNumber} results:`, error);
-            alert(`Error announcing round ${roundNumber} results`);
-        }
-    };
 
     const handleStartRound2 = async () => {
         try {
@@ -385,16 +401,18 @@ const AdminPage = () => {
 
     const getStatusColor = (status) => {
         switch (status) {
-            case 'registered':
+            case 'Registered':
                 return 'bg-yellow-500/20 text-yellow-300';
-            case 'round1_completed':
+            case 'Round1':
                 return 'bg-blue-500/20 text-blue-300';
-            case 'round2_completed':
+            case 'Round2':
                 return 'bg-green-500/20 text-green-300';
-            case 'round3_completed':
+            case 'Round3':
                 return 'bg-purple-500/20 text-purple-300';
-            case 'disqualified':
+            case 'Eliminated':
                 return 'bg-red-500/20 text-red-300';
+            case 'Selected':
+                return 'bg-emerald-500/20 text-emerald-300';
             default:
                 return 'bg-gray-500/20 text-gray-300';
         }
@@ -402,16 +420,18 @@ const AdminPage = () => {
 
     const getStatusText = (status) => {
         switch (status) {
-            case 'registered':
+            case 'Registered':
                 return 'REGISTERED';
-            case 'round1_completed':
-                return 'ROUND 1 COMPLETE';
-            case 'round2_completed':
-                return 'ROUND 2 COMPLETE';
-            case 'round3_completed':
-                return 'ROUND 3 COMPLETE';
-            case 'disqualified':
-                return 'DISQUALIFIED';
+            case 'Round1':
+                return 'ROUND 1';
+            case 'Round2':
+                return 'ROUND 2';
+            case 'Round3':
+                return 'ROUND 3';
+            case 'Eliminated':
+                return 'ELIMINATED';
+            case 'Selected':
+                return 'SELECTED';
             default:
                 return 'UNKNOWN';
         }
@@ -614,6 +634,230 @@ const AdminPage = () => {
             : team.members.member2.name;
     };
 
+    // Team Management Functions
+    const fetchTeamManagementData = async () => {
+        try {
+            const response = await adminApiCall('/admin/teamManagement');
+            if (response.success) {
+                setTeamManagementData(response.data);
+
+                // Check which rounds have been announced based on team data
+                const teams = response.data.teams;
+                const round1Announced = teams.some(team =>
+                    team.competitionStatus === 'Round1' && team.resultsAnnounced
+                );
+                const round2Announced = teams.some(team =>
+                    team.competitionStatus === 'Round2' && team.resultsAnnounced
+                );
+                const round3Announced = teams.some(team =>
+                    team.competitionStatus === 'Round3' && team.resultsAnnounced
+                );
+
+                setAnnouncedRounds({
+                    round1: round1Announced,
+                    round2: round2Announced,
+                    round3: round3Announced
+                });
+            }
+        } catch (error) {
+            console.error('Error fetching team management data:', error);
+            // Use mock data for demo
+            setTeamManagementData({
+                teams: teams.map(team => ({
+                    ...team,
+                    hasCompletedCycle: false,
+                    resultsAnnounced: false
+                })),
+                stats: {
+                    totalTeams: teams.length,
+                    registered: teams.filter(t => t.competitionStatus === 'Registered').length,
+                    round1: teams.filter(t => t.competitionStatus === 'Round1').length,
+                    round2: teams.filter(t => t.competitionStatus === 'Round2').length,
+                    round3: teams.filter(t => t.competitionStatus === 'Round3').length,
+                    eliminated: teams.filter(t => t.competitionStatus === 'Eliminated').length,
+                    selected: teams.filter(t => t.competitionStatus === 'Selected').length,
+                    hasCompletedCycle: 0,
+                    resultsAnnounced: 0
+                }
+            });
+        }
+    };
+
+    const handleResetTeam = async (teamId) => {
+        try {
+            if (window.confirm('Are you sure you want to reset this team\'s progress? This will clear all scores and allow them to start over.')) {
+                const response = await adminApiCall(`/admin/resetTeam/${teamId}`, {
+                    method: 'POST'
+                });
+                if (response.success) {
+                    alert('Team progress reset successfully!');
+                    await fetchTeamManagementData();
+                } else {
+                    alert('Error resetting team progress');
+                }
+            }
+        } catch (error) {
+            console.error('Error resetting team:', error);
+            alert('Error resetting team progress');
+        }
+    };
+
+    const handleUpdateTeamStatus = async (teamId, newStatus) => {
+        try {
+            const response = await adminApiCall(`/admin/updateStatus/${teamId}`, {
+                method: 'PATCH',
+                body: JSON.stringify({ competitionStatus: newStatus })
+            });
+            if (response.success) {
+                alert('Team status updated successfully!');
+                await fetchTeamManagementData();
+            } else {
+                alert('Error updating team status');
+            }
+        } catch (error) {
+            console.error('Error updating team status:', error);
+            alert('Error updating team status');
+        }
+    };
+
+
+    // Team selection functions
+    const handleTeamSelection = (teamId) => {
+        setSelectedTeams(prev =>
+            prev.includes(teamId)
+                ? prev.filter(id => id !== teamId)
+                : [...prev, teamId]
+        );
+    };
+
+    const handleSelectAll = () => {
+        const eligibleTeams = getEligibleTeamsForAdvancement();
+        setSelectedTeams(eligibleTeams.map(team => team._id));
+    };
+
+    const handleDeselectAll = () => {
+        setSelectedTeams([]);
+    };
+
+    const getEligibleTeamsForAdvancement = () => {
+        if (!teamManagementData?.teams) return [];
+        return teamManagementData.teams.filter(team =>
+            team.competitionStatus !== 'Eliminated' &&
+            team.competitionStatus !== 'Selected'
+        );
+    };
+
+    const handleAdvanceSelectedTeams = async () => {
+        try {
+            if (selectedTeams.length === 0) {
+                alert('Please select at least one team to advance');
+                return;
+            }
+
+            // Determine which round to advance to based on selected teams' current status
+            const selectedTeamData = teamManagementData.teams.filter(team => selectedTeams.includes(team._id));
+            const statuses = [...new Set(selectedTeamData.map(team => team.competitionStatus))];
+
+            if (statuses.length > 1) {
+                alert('Please select teams from the same round only');
+                return;
+            }
+
+            let roundNumber;
+            switch (statuses[0]) {
+                case 'Registered':
+                    roundNumber = 1;
+                    break;
+                case 'Round1':
+                    roundNumber = 2;
+                    break;
+                case 'Round2':
+                    roundNumber = 3;
+                    break;
+                default:
+                    alert('Selected teams cannot be advanced');
+                    return;
+            }
+
+            if (window.confirm(`Are you sure you want to advance ${selectedTeams.length} teams to Round ${roundNumber} and eliminate the rest?`)) {
+                setSelectionLoading(true);
+                const response = await adminApiCall(`/admin/round/${roundNumber}/select`, {
+                    method: 'POST',
+                    body: JSON.stringify({ selectedTeamIds: selectedTeams })
+                });
+
+                if (response.success) {
+                    alert(`Round ${roundNumber} selection completed! ${response.data.selectedCount} teams advanced, ${response.data.eliminatedCount} teams eliminated.`);
+                    setSelectedTeams([]);
+                    await fetchTeamManagementData();
+                } else {
+                    alert('Error processing team selection');
+                }
+            }
+        } catch (error) {
+            console.error('Error processing selection:', error);
+            alert('Error processing team selection');
+        } finally {
+            setSelectionLoading(false);
+        }
+    };
+
+    const handleResetAllTeams = async () => {
+        try {
+            if (window.confirm('Are you sure you want to reset ALL teams? This will clear all progress and set all teams back to "Registered" status. This action cannot be undone.')) {
+                setSelectionLoading(true);
+
+                // Reset all teams one by one
+                const resetPromises = teamManagementData.teams.map(team =>
+                    adminApiCall(`/admin/resetTeam/${team._id}`, { method: 'POST' })
+                );
+
+                await Promise.all(resetPromises);
+
+                alert('All teams have been reset successfully! All teams are now back to "Registered" status.');
+                setSelectedTeams([]);
+                await fetchTeamManagementData();
+            }
+        } catch (error) {
+            console.error('Error resetting all teams:', error);
+            alert('Error resetting all teams. Please try again.');
+        } finally {
+            setSelectionLoading(false);
+        }
+    };
+
+    const handleAnnounceResults = async (roundNumber) => {
+        try {
+            if (window.confirm(`Are you sure you want to announce Round ${roundNumber} results? This will make the results visible to all teams.`)) {
+                setSelectionLoading(true);
+
+                const response = await adminApiCall('/admin/announceResults', {
+                    method: 'POST',
+                    body: JSON.stringify({ round: roundNumber })
+                });
+
+                if (response.success) {
+                    alert(`Round ${roundNumber} results have been announced successfully! Teams can now see their updated status.`);
+
+                    // Lock the button for this round
+                    setAnnouncedRounds(prev => ({
+                        ...prev,
+                        [`round${roundNumber}`]: true
+                    }));
+
+                    await fetchTeamManagementData();
+                } else {
+                    alert('Error announcing results. Please try again.');
+                }
+            }
+        } catch (error) {
+            console.error('Error announcing results:', error);
+            alert('Error announcing results. Please try again.');
+        } finally {
+            setSelectionLoading(false);
+        }
+    };
+
     // Admin logout function
     const handleAdminLogout = async () => {
         try {
@@ -676,10 +920,16 @@ const AdminPage = () => {
                         <p className="text-gray-300 text-sm">Aptitude Test</p>
                     </div>
                     <button
-                        onClick={handleAnnounceRound1}
-                        className="w-full bg-gradient-to-r from-purple-500 via-purple-600 to-purple-700 hover:from-purple-600 hover:via-purple-700 hover:to-purple-800 text-white font-semibold py-3 px-6 rounded-lg transition-all duration-500 hover:scale-105 transform shadow-xl glow-purple"
+                        onClick={() => handleAnnounceResults(1)}
+                        disabled={selectionLoading || announcedRounds.round1}
+                        className={`w-full font-semibold py-3 px-6 rounded-lg transition-all duration-500 transform shadow-xl ${announcedRounds.round1
+                            ? 'bg-gray-500 cursor-not-allowed'
+                            : 'bg-gradient-to-r from-green-500 via-green-600 to-green-700 hover:from-green-600 hover:via-green-700 hover:to-green-800 hover:scale-105 glow-green'
+                            }`}
                     >
-                        Announce Round 1 Results
+                        {selectionLoading ? 'Processing...' :
+                            announcedRounds.round1 ? 'Round 1 Results Announced ✓' :
+                                'Announce Round 1 Results'}
                     </button>
                 </div>
 
@@ -690,10 +940,16 @@ const AdminPage = () => {
                         <p className="text-gray-300 text-sm">Coding Challenge</p>
                     </div>
                     <button
-                        onClick={() => handleAnnounceRound(2)}
-                        className="w-full bg-gradient-to-r from-purple-500 via-purple-600 to-purple-700 hover:from-purple-600 hover:via-purple-700 hover:to-purple-800 text-white font-semibold py-3 px-6 rounded-lg transition-all duration-500 hover:scale-105 transform shadow-xl glow-purple"
+                        onClick={() => handleAnnounceResults(2)}
+                        disabled={selectionLoading || announcedRounds.round2}
+                        className={`w-full font-semibold py-3 px-6 rounded-lg transition-all duration-500 transform shadow-xl ${announcedRounds.round2
+                            ? 'bg-gray-500 cursor-not-allowed'
+                            : 'bg-gradient-to-r from-purple-500 via-purple-600 to-purple-700 hover:from-purple-600 hover:via-purple-700 hover:to-purple-800 hover:scale-105 glow-purple'
+                            }`}
                     >
-                        Announce Round 2 Results
+                        {selectionLoading ? 'Processing...' :
+                            announcedRounds.round2 ? 'Round 2 Results Announced ✓' :
+                                'Announce Round 2 Results'}
                     </button>
                 </div>
 
@@ -704,10 +960,16 @@ const AdminPage = () => {
                         <p className="text-gray-300 text-sm">Final Challenge</p>
                     </div>
                     <button
-                        onClick={() => handleAnnounceRound(3)}
-                        className="w-full bg-gradient-to-r from-purple-500 via-purple-600 to-purple-700 hover:from-purple-600 hover:via-purple-700 hover:to-purple-800 text-white font-semibold py-3 px-6 rounded-lg transition-all duration-500 hover:scale-105 transform shadow-xl glow-purple"
+                        onClick={() => handleAnnounceResults(3)}
+                        disabled={selectionLoading || announcedRounds.round3}
+                        className={`w-full font-semibold py-3 px-6 rounded-lg transition-all duration-500 transform shadow-xl ${announcedRounds.round3
+                            ? 'bg-gray-500 cursor-not-allowed'
+                            : 'bg-gradient-to-r from-purple-500 via-purple-600 to-purple-700 hover:from-purple-600 hover:via-purple-700 hover:to-purple-800 hover:scale-105 glow-purple'
+                            }`}
                     >
-                        Announce Round 3 Results
+                        {selectionLoading ? 'Processing...' :
+                            announcedRounds.round3 ? 'Round 3 Results Announced ✓' :
+                                'Announce Round 3 Results'}
                     </button>
                 </div>
             </div>
@@ -837,23 +1099,32 @@ const AdminPage = () => {
                 <p className="text-lg text-gray-300">Manage registered teams and their competition status</p>
             </div>
 
+
             {/* Round Count Boxes */}
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
+            <div className="grid grid-cols-1 md:grid-cols-6 gap-4 mb-8">
                 <div className="bg-gradient-to-br from-blue-600/20 to-blue-800/20 backdrop-blur-sm border border-blue-400/30 rounded-xl p-4 text-center">
                     <p className="text-sm text-gray-300 mb-1">Total Teams</p>
-                    <p className="text-3xl font-bold text-white">{teams.length}</p>
+                    <p className="text-3xl font-bold text-white">{teamManagementData.stats.totalTeams}</p>
                 </div>
                 <div className="bg-gradient-to-br from-green-600/20 to-green-800/20 backdrop-blur-sm border border-green-400/30 rounded-xl p-4 text-center">
-                    <p className="text-sm text-gray-300 mb-1">Round 1 Qualified</p>
-                    <p className="text-3xl font-bold text-white">{teams.filter(t => t.competitionStatus === 'round1_completed' || t.competitionStatus === 'round2_completed' || t.competitionStatus === 'round3_completed').length}</p>
+                    <p className="text-sm text-gray-300 mb-1">Registered</p>
+                    <p className="text-3xl font-bold text-white">{teamManagementData.stats.registered}</p>
                 </div>
                 <div className="bg-gradient-to-br from-purple-600/20 to-purple-800/20 backdrop-blur-sm border border-purple-400/30 rounded-xl p-4 text-center">
-                    <p className="text-sm text-gray-300 mb-1">Round 2 Qualified</p>
-                    <p className="text-3xl font-bold text-white">{teams.filter(t => t.competitionStatus === 'round2_completed' || t.competitionStatus === 'round3_completed').length}</p>
+                    <p className="text-sm text-gray-300 mb-1">Round 2</p>
+                    <p className="text-3xl font-bold text-white">{teamManagementData.stats.round2}</p>
                 </div>
                 <div className="bg-gradient-to-br from-orange-600/20 to-orange-800/20 backdrop-blur-sm border border-orange-400/30 rounded-xl p-4 text-center">
-                    <p className="text-sm text-gray-300 mb-1">Round 3 Qualified</p>
-                    <p className="text-3xl font-bold text-white">{teams.filter(t => t.competitionStatus === 'round3_completed').length}</p>
+                    <p className="text-sm text-gray-300 mb-1">Round 3</p>
+                    <p className="text-3xl font-bold text-white">{teamManagementData.stats.round3}</p>
+                </div>
+                <div className="bg-gradient-to-br from-red-600/20 to-red-800/20 backdrop-blur-sm border border-red-400/30 rounded-xl p-4 text-center">
+                    <p className="text-sm text-gray-300 mb-1">Eliminated</p>
+                    <p className="text-3xl font-bold text-white">{teamManagementData.stats.eliminated}</p>
+                </div>
+                <div className="bg-gradient-to-br from-emerald-600/20 to-emerald-800/20 backdrop-blur-sm border border-emerald-400/30 rounded-xl p-4 text-center">
+                    <p className="text-sm text-gray-300 mb-1">Selected</p>
+                    <p className="text-3xl font-bold text-white">{teamManagementData.stats.selected}</p>
                 </div>
             </div>
 
@@ -879,12 +1150,49 @@ const AdminPage = () => {
                             className="w-full px-4 py-3 bg-white/20 border border-white/30 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
                         >
                             <option value="all">All Teams</option>
-                            <option value="registered">Registered</option>
-                            <option value="round1_completed">Round 1 Complete</option>
-                            <option value="round2_completed">Round 2 Complete</option>
-                            <option value="round3_completed">Round 3 Complete</option>
-                            <option value="disqualified">Disqualified</option>
+                            <option value="Registered">Registered</option>
+                            <option value="Round1">Round 1</option>
+                            <option value="Round2">Round 2</option>
+                            <option value="Round3">Round 3</option>
+                            <option value="Eliminated">Eliminated</option>
+                            <option value="Selected">Selected</option>
                         </select>
+                    </div>
+                </div>
+            </div>
+
+            {/* Team Selection Controls */}
+            <div className="bg-white/10 backdrop-blur-sm border border-white/20 rounded-xl p-6 mb-8">
+                <div className="flex justify-between items-center mb-4">
+                    <div>
+                        <h3 className="text-xl font-bold text-white mb-2">Team Selection</h3>
+                        <p className="text-gray-300 text-sm">
+                            Select teams to advance to the next round. Selected teams will advance, unselected teams will be eliminated.
+                        </p>
+                        <p className="text-sm text-blue-300 mt-1">
+                            {selectedTeams.length} / {getEligibleTeamsForAdvancement().length} selected
+                        </p>
+                    </div>
+                    <div className="flex gap-2">
+                        <button
+                            onClick={handleSelectAll}
+                            className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg transition-colors text-sm"
+                        >
+                            Select All
+                        </button>
+                        <button
+                            onClick={handleDeselectAll}
+                            className="bg-gray-600 hover:bg-gray-700 text-white px-4 py-2 rounded-lg transition-colors text-sm"
+                        >
+                            Deselect All
+                        </button>
+                        <button
+                            onClick={handleAdvanceSelectedTeams}
+                            disabled={selectedTeams.length === 0 || selectionLoading}
+                            className="bg-green-600 hover:bg-green-700 disabled:bg-gray-600 disabled:cursor-not-allowed text-white px-4 py-2 rounded-lg transition-colors text-sm"
+                        >
+                            {selectionLoading ? 'Processing...' : `Advance ${selectedTeams.length} Teams`}
+                        </button>
                     </div>
                 </div>
             </div>
@@ -896,15 +1204,14 @@ const AdminPage = () => {
                         <thead className="bg-white/10">
                             <tr>
                                 <th className="px-6 py-4 text-left text-white font-semibold">Team Name</th>
-                                <th className="px-6 py-4 text-left text-white font-semibold">Status</th>
+                                <th className="px-6 py-4 text-left text-white font-semibold">Current Status</th>
+                                <th className="px-6 py-4 text-left text-white font-semibold">Next Round Eligibility</th>
                                 <th className="px-6 py-4 text-left text-white font-semibold">Score</th>
-                                <th className="px-6 py-4 text-left text-white font-semibold">Round 1</th>
-                                <th className="px-6 py-4 text-left text-white font-semibold">Round 2</th>
-                                <th className="px-6 py-4 text-left text-white font-semibold">Round 3</th>
+                                <th className="px-6 py-4 text-left text-white font-semibold">Reset</th>
                             </tr>
                         </thead>
                         <tbody>
-                            {teams
+                            {teamManagementData.teams
                                 .filter(team => {
                                     const matchesSearch = searchTerm === '' ||
                                         team.teamName.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -921,12 +1228,39 @@ const AdminPage = () => {
                                             <div>
                                                 <p className="text-white font-semibold text-lg">{team.teamName}</p>
                                                 <p className="text-gray-300 text-sm">ID: {team._id?.slice(-8)}</p>
+                                                <div className="flex items-center gap-2 mt-1">
+                                                    {team.hasCompletedCycle && (
+                                                        <span className="px-2 py-1 bg-orange-500/20 text-orange-300 text-xs rounded-full">
+                                                            Completed Cycle
+                                                        </span>
+                                                    )}
+                                                    {team.resultsAnnounced && (
+                                                        <span className="px-2 py-1 bg-green-500/20 text-green-300 text-xs rounded-full">
+                                                            Results Announced
+                                                        </span>
+                                                    )}
+                                                </div>
                                             </div>
                                         </td>
                                         <td className="px-6 py-4">
                                             <span className={`px-3 py-1 rounded-full text-xs font-medium ${getStatusColor(team.competitionStatus)}`}>
                                                 {getStatusText(team.competitionStatus)}
                                             </span>
+                                        </td>
+                                        <td className="px-6 py-4">
+                                            {team.competitionStatus !== 'Eliminated' && team.competitionStatus !== 'Selected' ? (
+                                                <div className="flex items-center">
+                                                    <input
+                                                        type="checkbox"
+                                                        checked={selectedTeams.includes(team._id)}
+                                                        onChange={() => handleTeamSelection(team._id)}
+                                                        className="w-5 h-5 text-blue-600 bg-gray-700 border-gray-600 rounded focus:ring-blue-500"
+                                                    />
+                                                    <span className="ml-2 text-sm text-gray-300">Select</span>
+                                                </div>
+                                            ) : (
+                                                <span className="text-gray-500 text-sm">–</span>
+                                            )}
                                         </td>
                                         <td className="px-6 py-4">
                                             <div className="text-center">
@@ -939,50 +1273,28 @@ const AdminPage = () => {
                                             </div>
                                         </td>
                                         <td className="px-6 py-4">
-                                            <select
-                                                value={getRoundStatus(team, 1)}
-                                                onChange={(e) => handleRoundQualification(team._id, 1, e.target.value)}
-                                                className="w-full px-3 py-2 bg-gray-800 border border-gray-600 rounded-lg text-white text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 hover:bg-gray-700 transition-colors"
+                                            <button
+                                                onClick={() => handleResetTeam(team._id)}
+                                                className="bg-red-600 hover:bg-red-700 text-white text-xs px-3 py-2 rounded-lg transition-colors"
                                             >
-                                                <option value="registered" className="bg-gray-800 text-white">Registered</option>
-                                                <option value="qualified" className="bg-gray-800 text-white">Qualified</option>
-                                                <option value="disqualified" className="bg-gray-800 text-white">Disqualified</option>
-                                            </select>
-                                        </td>
-                                        <td className="px-6 py-4">
-                                            <select
-                                                value={getRoundStatus(team, 2)}
-                                                onChange={(e) => handleRoundQualification(team._id, 2, e.target.value)}
-                                                className={`w-full px-3 py-2 border rounded-lg text-sm focus:outline-none focus:ring-2 transition-colors ${getRoundStatus(team, 1) !== 'qualified'
-                                                    ? 'bg-gray-600 border-gray-500 text-gray-400 cursor-not-allowed'
-                                                    : 'bg-gray-800 border-gray-600 text-white hover:bg-gray-700 focus:ring-green-500'
-                                                    }`}
-                                                disabled={getRoundStatus(team, 1) !== 'qualified'}
-                                            >
-                                                <option value="registered" className="bg-gray-800 text-white">Registered</option>
-                                                <option value="qualified" className="bg-gray-800 text-white">Qualified</option>
-                                                <option value="disqualified" className="bg-gray-800 text-white">Disqualified</option>
-                                            </select>
-                                        </td>
-                                        <td className="px-6 py-4">
-                                            <select
-                                                value={getRoundStatus(team, 3)}
-                                                onChange={(e) => handleRoundQualification(team._id, 3, e.target.value)}
-                                                className={`w-full px-3 py-2 border rounded-lg text-sm focus:outline-none focus:ring-2 transition-colors ${getRoundStatus(team, 2) !== 'qualified'
-                                                    ? 'bg-gray-600 border-gray-500 text-gray-400 cursor-not-allowed'
-                                                    : 'bg-gray-800 border-gray-600 text-white hover:bg-gray-700 focus:ring-purple-500'
-                                                    }`}
-                                                disabled={getRoundStatus(team, 2) !== 'qualified'}
-                                            >
-                                                <option value="registered" className="bg-gray-800 text-white">Registered</option>
-                                                <option value="qualified" className="bg-gray-800 text-white">Qualified</option>
-                                                <option value="disqualified" className="bg-gray-800 text-white">Disqualified</option>
-                                            </select>
+                                                Reset Team
+                                            </button>
                                         </td>
                                     </tr>
                                 ))}
                         </tbody>
                     </table>
+                </div>
+
+                {/* Reset All Teams Button */}
+                <div className="mt-6 flex justify-center">
+                    <button
+                        onClick={handleResetAllTeams}
+                        disabled={selectionLoading}
+                        className="bg-red-600 hover:bg-red-700 disabled:bg-gray-600 disabled:cursor-not-allowed text-white px-6 py-3 rounded-lg transition-colors font-medium"
+                    >
+                        {selectionLoading ? 'Processing...' : 'Reset All Teams'}
+                    </button>
                 </div>
 
                 {/* No teams found message */}
@@ -1051,6 +1363,7 @@ const AdminPage = () => {
                         </tbody>
                     </table>
                 </div>
+
             </div>
         );
     };
@@ -1468,6 +1781,7 @@ const AdminPage = () => {
             <div className="flex-1 overflow-y-auto">
                 {renderContent()}
             </div>
+
         </div>
     );
 };

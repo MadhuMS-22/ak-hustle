@@ -72,8 +72,16 @@ const teamSchema = new mongoose.Schema({
     },
     competitionStatus: {
         type: String,
-        enum: ['registered', 'round1_completed', 'round2_completed', 'round3_completed', 'disqualified'],
-        default: 'registered'
+        enum: ['Registered', 'Round1', 'Round2', 'Round3', 'Eliminated', 'Selected'],
+        default: 'Registered'
+    },
+    hasCompletedCycle: {
+        type: Boolean,
+        default: false
+    },
+    resultsAnnounced: {
+        type: Boolean,
+        default: false
     },
     scores: {
         round1: {

@@ -881,7 +881,27 @@ const Round3Page = () => {
               </div>
               <div className="flex justify-center gap-4">
                 <button
-                  onClick={() => navigate('/team')}
+                  onClick={async () => {
+                    // Update team status to Completed
+                    try {
+                      const response = await fetch('http://localhost:5001/api/competition/team/status', {
+                        method: 'PATCH',
+                        headers: {
+                          'Content-Type': 'application/json',
+                          'Authorization': `Bearer ${localStorage.getItem('hustle_token')}`
+                        },
+                        body: JSON.stringify({
+                          competitionStatus: 'Round3'
+                        })
+                      });
+                      if (!response.ok) {
+                        console.error('Error updating team status:', response.statusText);
+                      }
+                    } catch (error) {
+                      console.error('Error updating team status:', error);
+                    }
+                    navigate('/team');
+                  }}
                   className="bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-6 rounded-full transition duration-300 transform hover:scale-105"
                 >
                   Go Back to Home Page

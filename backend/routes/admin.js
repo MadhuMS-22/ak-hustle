@@ -38,7 +38,7 @@ const updateTeamStatus = async (req, res) => {
         const { id } = req.params;
         const { competitionStatus, scores } = req.body;
 
-        const validStatuses = ['registered', 'round1_completed', 'round2_completed', 'round3_completed', 'disqualified'];
+        const validStatuses = ['Registered', 'Round1', 'Round2', 'Round3', 'Eliminated', 'Selected'];
 
         if (competitionStatus && !validStatuses.includes(competitionStatus)) {
             return res.status(400).json({
@@ -87,12 +87,12 @@ const updateTeamStatus = async (req, res) => {
 };
 
 // @desc    Announce round results (Admin only)
-// @route   POST /api/admin/announce/:round
+// @route   POST /api/admin/announceResults
 // @access  Private (Admin)
-const announceRoundResults = async (req, res) => {
+const announceResults = async (req, res) => {
     try {
-        const { round } = req.params;
-        const validRounds = ['1', '2', '3'];
+        const { round } = req.body;
+        const validRounds = [1, 2, 3];
 
         if (!validRounds.includes(round)) {
             return res.status(400).json({
@@ -101,18 +101,47 @@ const announceRoundResults = async (req, res) => {
             });
         }
 
-        // Here you would implement the logic to announce results
-        // For now, just return success
+        // Update all teams' resultsAnnounced status based on their current competition status
+        let updateQuery = {};
+        let message = '';
+
+        switch (round) {
+            case 1:
+                // Announce Round 1 results - teams in Round1 status can see their advancement
+                updateQuery = { competitionStatus: 'Round1' };
+                message = 'Round 1 results announced successfully! Teams can now see their advancement status.';
+                break;
+            case 2:
+                // Announce Round 2 results - teams in Round2 status can see their advancement
+                updateQuery = { competitionStatus: 'Round2' };
+                message = 'Round 2 results announced successfully! Teams can now see their advancement status.';
+                break;
+            case 3:
+                // Announce Round 3 results - teams in Round3 status can see their advancement
+                updateQuery = { competitionStatus: 'Round3' };
+                message = 'Round 3 results announced successfully! Teams can now see their advancement status.';
+                break;
+        }
+
+        // Update resultsAnnounced for teams in the specified round
+        const result = await Team.updateMany(updateQuery, {
+            resultsAnnounced: true
+        });
+
         res.status(200).json({
             success: true,
-            message: `Round ${round} results announced successfully`
+            message: message,
+            data: {
+                updatedCount: result.modifiedCount,
+                round: round
+            }
         });
 
     } catch (error) {
-        console.error('Announce round results error:', error);
+        console.error('Announce results error:', error);
         res.status(500).json({
             success: false,
-            message: 'Server error while announcing round results'
+            message: 'Server error while announcing results'
         });
     }
 };
@@ -530,7 +559,7 @@ const validateAdminToken = async (req, res) => {
 
 router.get('/validate', adminAuth, validateAdminToken);
 router.put('/teams/:id/status', adminAuth, updateTeamStatus);
-router.post('/announce/:round', adminAuth, announceRoundResults);
+router.post('/announceResults', adminAuth, announceResults);
 router.post('/start/:round', adminAuth, startRound);
 router.get('/stats', adminAuth, getCompetitionStats);
 router.get('/round-codes', adminAuth, getRoundCodes);
@@ -538,5 +567,360 @@ router.post('/round-codes', adminAuth, setRoundCode);
 router.delete('/round-codes/:round', adminAuth, resetRoundCode);
 router.get('/round2/data', adminAuth, getRound2AdminData);
 router.get('/round2/team/:teamId/submissions', adminAuth, getTeamRound2Submissions);
+
+// @desc    Reset team progress (Admin only)
+// @route   POST /api/admin/resetTeam/:teamId
+// @access  Private (Admin)
+const resetTeam = async (req, res) => {
+    try {
+        const { teamId } = req.params;
+
+        const team = await Team.findById(teamId);
+        if (!team) {
+            return res.status(404).json({
+                success: false,
+                message: 'Team not found'
+            });
+        }
+
+        // Reset team progress
+        const resetData = {
+            competitionStatus: 'Registered',
+            hasCompletedCycle: false,
+            resultsAnnounced: false,
+            // Reset scores
+            scores: {
+                round1: 0,
+                round2: 0,
+                round3: 0,
+                total: 0
+            },
+            // Reset Round 2 specific fields
+            startTime: null,
+            endTime: null,
+            totalTimeTaken: 0,
+            isQuizCompleted: false,
+            totalScore: 0,
+            unlockedQuestions: {
+                q1: true,
+                q2: false,
+                q3: false,
+                q4: false,
+                q5: false,
+                q6: false
+            },
+            completedQuestions: {
+                q1: false,
+                q2: false,
+                q3: false,
+                q4: false,
+                q5: false,
+                q6: false
+            },
+            scores: {
+                q1: 0,
+                q2: 0,
+                q3: 0,
+                q4: 0,
+                q5: 0,
+                q6: 0
+            },
+            aptitudeAttempts: {
+                q1: 0,
+                q2: 0,
+                q3: 0
+            },
+            // Reset Round 3 specific fields
+            round3Score: 0,
+            round3Time: 0,
+            round3Program: '',
+            round3QuestionOrder: null,
+            round3QuestionOrderName: '',
+            round3QuestionResults: [],
+            round3IndividualScores: [],
+            round3Completed: false,
+            round3SubmittedAt: null
+        };
+
+        const updatedTeam = await Team.findByIdAndUpdate(
+            teamId,
+            resetData,
+            { new: true }
+        ).select('-password');
+
+        // Delete all submissions for this team
+        await Submission.deleteMany({ team: teamId });
+
+        res.status(200).json({
+            success: true,
+            message: 'Team progress reset successfully',
+            data: {
+                team: updatedTeam
+            }
+        });
+
+    } catch (error) {
+        console.error('Reset team error:', error);
+        res.status(500).json({
+            success: false,
+            message: 'Server error while resetting team progress'
+        });
+    }
+};
+
+// @desc    Update team status (Admin only)
+// @route   PATCH /api/admin/updateStatus/:teamId
+// @access  Private (Admin)
+const updateTeamStatusNew = async (req, res) => {
+    try {
+        const { teamId } = req.params;
+        const { competitionStatus } = req.body;
+
+        const validStatuses = ['Registered', 'Round1', 'Round2', 'Round3', 'Eliminated', 'Selected'];
+
+        if (!validStatuses.includes(competitionStatus)) {
+            return res.status(400).json({
+                success: false,
+                message: 'Invalid competition status'
+            });
+        }
+
+        const team = await Team.findById(teamId);
+        if (!team) {
+            return res.status(404).json({
+                success: false,
+                message: 'Team not found'
+            });
+        }
+
+        const updatedTeam = await Team.findByIdAndUpdate(
+            teamId,
+            { competitionStatus },
+            { new: true }
+        ).select('-password');
+
+        res.status(200).json({
+            success: true,
+            message: 'Team status updated successfully',
+            data: {
+                team: updatedTeam
+            }
+        });
+
+    } catch (error) {
+        console.error('Update team status error:', error);
+        res.status(500).json({
+            success: false,
+            message: 'Server error while updating team status'
+        });
+    }
+};
+
+// @desc    Announce results (Admin only)
+// @route   POST /api/admin/announceResults
+// @access  Private (Admin)
+
+// @desc    Get teams for round selection (Admin only)
+// @route   GET /api/admin/round/:roundNumber/teams
+// @access  Private (Admin)
+const getRoundTeams = async (req, res) => {
+    try {
+        const { roundNumber } = req.params;
+        const validRounds = ['1', '2', '3'];
+
+        if (!validRounds.includes(roundNumber)) {
+            return res.status(400).json({
+                success: false,
+                message: 'Invalid round number'
+            });
+        }
+
+        let statusFilter;
+        switch (roundNumber) {
+            case '1':
+                statusFilter = 'Registered';
+                break;
+            case '2':
+                statusFilter = 'Round1';
+                break;
+            case '3':
+                statusFilter = 'Round2';
+                break;
+        }
+
+        const teams = await Team.find({
+            isActive: true,
+            competitionStatus: statusFilter
+        })
+            .select('-password')
+            .sort({ registrationDate: -1 });
+
+        res.status(200).json({
+            success: true,
+            data: {
+                teams: teams.map(team => ({
+                    _id: team._id,
+                    teamName: team.teamName,
+                    members: team.members,
+                    leader: team.leader,
+                    competitionStatus: team.competitionStatus,
+                    scores: team.scores,
+                    registrationDate: team.registrationDate
+                }))
+            }
+        });
+
+    } catch (error) {
+        console.error('Get round teams error:', error);
+        res.status(500).json({
+            success: false,
+            message: 'Server error while fetching round teams'
+        });
+    }
+};
+
+// @desc    Process round selection (Admin only)
+// @route   POST /api/admin/round/:roundNumber/select
+// @access  Private (Admin)
+const processRoundSelection = async (req, res) => {
+    try {
+        const { roundNumber } = req.params;
+        const { selectedTeamIds } = req.body;
+        const validRounds = ['1', '2', '3'];
+
+        if (!validRounds.includes(roundNumber)) {
+            return res.status(400).json({
+                success: false,
+                message: 'Invalid round number'
+            });
+        }
+
+        if (!Array.isArray(selectedTeamIds)) {
+            return res.status(400).json({
+                success: false,
+                message: 'Selected team IDs must be an array'
+            });
+        }
+
+        let nextStatus;
+        switch (roundNumber) {
+            case '1':
+                nextStatus = 'Round2';
+                break;
+            case '2':
+                nextStatus = 'Round3';
+                break;
+            case '3':
+                nextStatus = 'Selected';
+                break;
+        }
+
+        // Get current round status for filtering
+        let currentStatus;
+        switch (roundNumber) {
+            case '1':
+                currentStatus = 'Registered';
+                break;
+            case '2':
+                currentStatus = 'Round1';
+                break;
+            case '3':
+                currentStatus = 'Round2';
+                break;
+        }
+
+        // Update selected teams to next status
+        const selectedResult = await Team.updateMany(
+            {
+                _id: { $in: selectedTeamIds },
+                competitionStatus: currentStatus,
+                isActive: true
+            },
+            { competitionStatus: nextStatus }
+        );
+
+        // Update non-selected teams to eliminated
+        const eliminatedResult = await Team.updateMany(
+            {
+                competitionStatus: currentStatus,
+                isActive: true,
+                _id: { $nin: selectedTeamIds }
+            },
+            { competitionStatus: 'Eliminated' }
+        );
+
+        res.status(200).json({
+            success: true,
+            message: `Round ${roundNumber} selection processed successfully`,
+            data: {
+                selectedCount: selectedResult.modifiedCount,
+                eliminatedCount: eliminatedResult.modifiedCount,
+                totalProcessed: selectedResult.modifiedCount + eliminatedResult.modifiedCount
+            }
+        });
+
+    } catch (error) {
+        console.error('Process round selection error:', error);
+        res.status(500).json({
+            success: false,
+            message: 'Server error while processing round selection'
+        });
+    }
+};
+
+// @desc    Get team management data (Admin only)
+// @route   GET /api/admin/teamManagement
+// @access  Private (Admin)
+const getTeamManagementData = async (req, res) => {
+    try {
+        const teams = await Team.find({ isActive: true })
+            .select('-password')
+            .sort({ registrationDate: -1 });
+
+        const stats = {
+            totalTeams: teams.length,
+            registered: teams.filter(t => t.competitionStatus === 'Registered').length,
+            round1: teams.filter(t => t.competitionStatus === 'Round1').length,
+            round2: teams.filter(t => t.competitionStatus === 'Round2').length,
+            round3: teams.filter(t => t.competitionStatus === 'Round3').length,
+            completed: teams.filter(t => t.competitionStatus === 'Completed').length,
+            hasCompletedCycle: teams.filter(t => t.hasCompletedCycle).length,
+            resultsAnnounced: teams.filter(t => t.resultsAnnounced).length
+        };
+
+        res.status(200).json({
+            success: true,
+            data: {
+                teams: teams.map(team => ({
+                    _id: team._id,
+                    teamName: team.teamName,
+                    members: team.members,
+                    leader: team.leader,
+                    competitionStatus: team.competitionStatus,
+                    hasCompletedCycle: team.hasCompletedCycle,
+                    resultsAnnounced: team.resultsAnnounced,
+                    scores: team.scores,
+                    registrationDate: team.registrationDate
+                })),
+                stats
+            }
+        });
+
+    } catch (error) {
+        console.error('Get team management data error:', error);
+        res.status(500).json({
+            success: false,
+            message: 'Server error while fetching team management data'
+        });
+    }
+};
+
+// Apply new routes
+router.post('/resetTeam/:teamId', adminAuth, resetTeam);
+router.patch('/updateStatus/:teamId', adminAuth, updateTeamStatusNew);
+router.post('/announceResults', adminAuth, announceResults);
+router.get('/teamManagement', adminAuth, getTeamManagementData);
+router.get('/round/:roundNumber/teams', adminAuth, getRoundTeams);
+router.post('/round/:roundNumber/select', adminAuth, processRoundSelection);
 
 export default router;

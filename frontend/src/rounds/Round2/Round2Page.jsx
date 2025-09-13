@@ -317,7 +317,17 @@ const Round2Page = () => {
                                     Your responses have been submitted and recorded.
                                 </div>
                                 <button
-                                    onClick={() => navigate('/team')}
+                                    onClick={async () => {
+                                        // Update team status to Round2 (team is now in Round 2)
+                                        try {
+                                            await apiService.patch(`/competition/team/${teamId}/status`, {
+                                                competitionStatus: 'Round2'
+                                            });
+                                        } catch (error) {
+                                            console.error('Error updating team status:', error);
+                                        }
+                                        navigate('/team');
+                                    }}
                                     className="mt-6 bg-cyan-600 hover:bg-cyan-700 text-white font-bold py-2 px-4 rounded-lg transition-all transform hover:scale-105"
                                 >
                                     Back to Team Page
