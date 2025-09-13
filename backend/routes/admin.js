@@ -967,9 +967,36 @@ const resetAllTeams = async (req, res) => {
     }
 };
 
+// Reset announced results for all teams
+const resetAnnouncedResults = async (req, res) => {
+    try {
+        // Reset resultsAnnounced flag for all teams
+        const result = await Team.updateMany(
+            { isActive: true },
+            { resultsAnnounced: false }
+        );
+
+        res.status(200).json({
+            success: true,
+            message: 'Announced results reset successfully',
+            data: {
+                teamsUpdated: result.modifiedCount
+            }
+        });
+
+    } catch (error) {
+        console.error('Reset announced results error:', error);
+        res.status(500).json({
+            success: false,
+            message: 'Server error while resetting announced results'
+        });
+    }
+};
+
 // Apply new routes
 router.post('/resetTeam/:teamId', adminAuth, resetTeam);
 router.post('/resetAllTeams', adminAuth, resetAllTeams);
+router.post('/resetAnnouncedResults', adminAuth, resetAnnouncedResults);
 router.patch('/updateStatus/:teamId', adminAuth, updateTeamStatusNew);
 router.post('/announceResults', adminAuth, announceResults);
 router.get('/teamManagement', adminAuth, getTeamManagementData);

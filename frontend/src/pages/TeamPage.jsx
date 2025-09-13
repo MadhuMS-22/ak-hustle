@@ -73,8 +73,10 @@ const TeamPage = () => {
             },
             round2: {
               status: team.competitionStatus === 'Round2' ? 'available' :
-                ['Round3', 'Selected'].includes(team.competitionStatus) ? 'completed' :
-                  team.competitionStatus === 'Eliminated' ? 'completed' : 'locked',
+                team.competitionStatus === 'Round3' && !team.resultsAnnounced ? 'completed' :
+                  team.competitionStatus === 'Round3' && team.resultsAnnounced ? 'completed' :
+                    team.competitionStatus === 'Selected' ? 'completed' :
+                      team.competitionStatus === 'Eliminated' ? 'completed' : 'locked',
               result: (team.resultsAnnounced && team.competitionStatus !== 'Round2') ?
                 (['Round3', 'Selected'].includes(team.competitionStatus) ? true : false) : null,
               score: team.scores?.round2 || null,
@@ -182,6 +184,11 @@ const TeamPage = () => {
   const getRoundStatus = (round, roundNumber) => {
     // If round is completed, check if it's passed or failed
     if (round.status === 'completed') {
+      // If results are not announced yet, return 'pending' to show waiting message
+      if (!round.announced) {
+        return 'pending'
+      }
+      // If results are announced, check if passed or failed
       return round.result ? 'passed' : 'failed'
     }
     // If round is available, return available
@@ -227,7 +234,11 @@ const TeamPage = () => {
       case 'locked':
         return `Locked. Complete previous round to unlock.`
       case 'pending':
-        return `You are registered. Waiting for Round 1 to start.`
+        if (roundNumber === 1) {
+          return `You are registered. Waiting for Round 1 to start.`
+        } else {
+          return `Round ${roundNumber} completed. Waiting for results to be announced.`
+        }
       default:
         return "Round information not available"
     }

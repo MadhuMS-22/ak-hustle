@@ -748,14 +748,33 @@ const AdminPage = () => {
         }
     };
 
-    const handleResetAnnouncedRounds = () => {
+    const handleResetAnnouncedRounds = async () => {
         if (window.confirm('Are you sure you want to reset the announced rounds state? This will unlock all "Announce Results" buttons.')) {
-            setAnnouncedRounds({
-                round1: false,
-                round2: false,
-                round3: false
-            });
-            alert('Announced rounds state has been reset! All "Announce Results" buttons are now unlocked.');
+            try {
+                setSelectionLoading(true);
+                const response = await apiService.post('/admin/resetAnnouncedResults');
+                
+                if (response.data.success) {
+                    // Reset frontend state
+                    setAnnouncedRounds({
+                        round1: false,
+                        round2: false,
+                        round3: false
+                    });
+                    
+                    // Refresh team data to get updated resultsAnnounced status
+                    await fetchTeamManagementData();
+                    
+                    alert(`Announced results reset successfully! ${response.data.data.teamsUpdated} teams updated. All "Announce Results" buttons are now unlocked.`);
+                } else {
+                    alert('Failed to reset announced results. Please try again.');
+                }
+            } catch (error) {
+                console.error('Error resetting announced results:', error);
+                alert('Error resetting announced results. Please try again.');
+            } finally {
+                setSelectionLoading(false);
+            }
         }
     };
 

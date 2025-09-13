@@ -53,7 +53,7 @@ const Round2Page = () => {
         if (teamId) {
             apiService.get(`/competition/team/${teamId}`).then((res) => {
                 if (res.data.success) {
-                    setStep(res.data.team.competitionStatus === 'round1_completed' ? 1 : 0);
+                    setStep(['Round2', 'Round3'].includes(res.data.team.competitionStatus) ? 1 : 0);
                 }
             });
         }
@@ -125,6 +125,10 @@ const Round2Page = () => {
 
             if (response.isQuizCompleted) {
                 setIsQuizCompleted(true);
+                // Redirect to team page after Round 2 completion
+                setTimeout(() => {
+                    navigate('/team');
+                }, 2000); // Give user 2 seconds to see completion message
             } else {
                 // Automatically move to the next aptitude question
                 const challengeToAptitudeMap = { 'debug': 1, 'trace': 2, 'program': 3 };

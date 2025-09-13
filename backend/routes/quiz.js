@@ -244,6 +244,10 @@ Output: 0 1 1 2 3`
                 team.isQuizCompleted = true;
                 team.endTime = new Date();
                 team.totalTimeTaken = Math.floor((team.endTime - team.startTime) / 1000);
+                // Update competition status to Round3 when Round 2 is completed
+                team.competitionStatus = 'Round3';
+                // Update Round 2 score
+                team.scores.round2 = team.totalScore;
             }
 
             await team.save();
