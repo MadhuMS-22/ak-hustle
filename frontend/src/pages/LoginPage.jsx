@@ -55,8 +55,8 @@ const LoginPage = () => {
 
         if (response.success) {
           setMessage({ type: 'success', text: 'Login successful! Redirecting...' });
-          // Use the login method from AuthContext
-          login(response.data.team);
+          // Use the login method from AuthContext with token
+          login(response.data.team, response.data.token);
           // Redirect to team page after successful login
           setTimeout(() => {
             navigate('/team');

@@ -10,7 +10,7 @@ import { useAuth } from '../contexts/AuthContext'
 
 const TeamPage = () => {
   const navigate = useNavigate()
-  const { logout, isAuthenticated, teamData: contextTeamData } = useAuth()
+  const { logout, isAuthenticated, teamData: contextTeamData, loading: authLoading } = useAuth()
   const [teamName, setTeamName] = useState('')
   const [teamData, setTeamData] = useState(null)
   const [rounds, setRounds] = useState({
@@ -20,11 +20,15 @@ const TeamPage = () => {
   })
   const [showCodeVerification, setShowCodeVerification] = useState(false)
   const [verificationRound, setVerificationRound] = useState(null)
-  const [showResults, setShowResults] = useState({ round1: false, round2: false })
   const [loading, setLoading] = useState(true)
   const [roundCodes, setRoundCodes] = useState({ round2: '', round3: '' })
 
   useEffect(() => {
+    // Wait for auth loading to complete
+    if (authLoading) {
+      return
+    }
+
     // Check authentication status from context
     if (!isAuthenticated || !contextTeamData) {
       navigate('/login')
@@ -36,7 +40,7 @@ const TeamPage = () => {
     setTeamName(contextTeamData.teamName || 'Unknown Team')
     // Fetch real-time team data from backend
     fetchTeamData(contextTeamData._id)
-  }, [isAuthenticated, contextTeamData, navigate])
+  }, [isAuthenticated, contextTeamData, navigate, authLoading])
 
   // Fetch team data from backend
   const fetchTeamData = async (teamId) => {
@@ -63,21 +67,27 @@ const TeamPage = () => {
               team.competitionStatus === 'Round1' ? null :
                 ['Round2', 'Round3', 'Selected'].includes(team.competitionStatus) ? true : null,
             score: team.scores?.round1 || null,
-            announced: team.resultsAnnounced || false
+            announced: team.resultsAnnounced || false,
+            qualified: team.competitionStatus === 'Round1' ? false :
+              ['Round2', 'Round3', 'Selected'].includes(team.competitionStatus) ? true : null
           },
           round2: {
             status: team.competitionStatus === 'Round2' ? 'available' :
               ['Round3', 'Selected'].includes(team.competitionStatus) ? 'completed' : 'locked',
             result: ['Round3', 'Selected'].includes(team.competitionStatus) ? true : null,
             score: team.scores?.round2 || null,
-            announced: team.resultsAnnounced || false
+            announced: team.resultsAnnounced || false,
+            qualified: team.competitionStatus === 'Round2' ? false :
+              ['Round3', 'Selected'].includes(team.competitionStatus) ? true : null
           },
           round3: {
             status: team.competitionStatus === 'Round3' ? 'available' :
               team.competitionStatus === 'Selected' ? 'completed' : 'locked',
             result: team.competitionStatus === 'Selected' ? true : null,
             score: team.scores?.round3 || null,
-            announced: team.resultsAnnounced || false
+            announced: team.resultsAnnounced || false,
+            qualified: team.competitionStatus === 'Round3' ? false :
+              team.competitionStatus === 'Selected' ? true : null
           }
         }
 
@@ -127,8 +137,8 @@ const TeamPage = () => {
   const handleStartRound = (roundNumber) => {
     console.log(`Starting Round ${roundNumber}`)
     if (roundNumber === 1) {
-      // Round 1 is offline - show result
-      setShowResults(prev => ({ ...prev, round1: true }))
+      // Round 1 is offline - navigate to aptitude page
+      navigate('/aptitude')
     } else if (roundNumber === 2) {
       // Round 2 requires authentication code
       setVerificationRound(2)
@@ -138,10 +148,6 @@ const TeamPage = () => {
       setVerificationRound(3)
       setShowCodeVerification(true)
     }
-  }
-
-  const handleViewResults = (roundNumber) => {
-    setShowResults(prev => ({ ...prev, [`round${roundNumber}`]: true }))
   }
 
   const handleCodeVerified = (enteredCode) => {
@@ -204,11 +210,12 @@ const TeamPage = () => {
   const getRoundMessage = (round, roundNumber) => {
     const status = getRoundStatus(round, roundNumber)
     const isAnnounced = round.announced
+    const isQualified = round.qualified
 
     switch (status) {
       case 'passed':
         if (isAnnounced) {
-          return `Congratulations! You completed Round ${roundNumber}! Results have been announced.`
+          return `Congratulations! You qualified for Round ${roundNumber + 1}! Results have been announced.`
         } else {
           return `Round ${roundNumber} completed. Waiting for results to be announced.`
         }
@@ -296,12 +303,14 @@ const TeamPage = () => {
     )
   }
 
-  if (loading) {
+  if (authLoading || loading) {
     return (
       <div className='bg-gradient-to-br from-purple-900 via-blue-900 to-indigo-900 font-sans antialiased min-h-screen flex items-center justify-center'>
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-white mx-auto mb-4"></div>
-          <p className="text-white text-lg">Loading team data...</p>
+          <p className="text-white text-lg">
+            {authLoading ? 'Checking authentication...' : 'Loading team data...'}
+          </p>
         </div>
       </div>
     )
@@ -336,9 +345,9 @@ const TeamPage = () => {
             <div className='grid grid-cols-1 lg:grid-cols-3 gap-6'>
               {/* Round 1 */}
               <div className={classNames('p-8 rounded-3xl text-center glass-dark shadow-2xl w-full flex flex-col justify-center items-center gap-6 transition-all duration-500 hover:scale-105 hover:glow-purple', {
-                "bg-green-600/20 border-green-400/30": getRoundStatus(rounds.round1, 1) === 'passed',
-                "bg-red-600/20 border-red-400/30": getRoundStatus(rounds.round1, 1) === 'failed',
-                "bg-orange-600/20 border-orange-400/30": getRoundStatus(rounds.round1, 1) === 'pending' || getRoundStatus(rounds.round1, 1) === 'available',
+                "bg-green-600/40 border-green-400/50": getRoundStatus(rounds.round1, 1) === 'passed' && rounds.round1.announced,
+                "bg-red-600/40 border-red-400/50": getRoundStatus(rounds.round1, 1) === 'failed' && rounds.round1.announced,
+                "bg-orange-600/20 border-orange-400/30": getRoundStatus(rounds.round1, 1) === 'pending' || getRoundStatus(rounds.round1, 1) === 'available' || (getRoundStatus(rounds.round1, 1) === 'passed' && !rounds.round1.announced),
                 "bg-gray-600/20 border-gray-400/30": getRoundStatus(rounds.round1, 1) === 'locked'
               })}>
                 <div className='flex flex-col items-center gap-4'>
@@ -349,17 +358,27 @@ const TeamPage = () => {
                   <p className='text-sm font-medium text-gray-300 text-center leading-relaxed'>
                     {getRoundMessage(rounds.round1, 1)}
                   </p>
-                  <div className="text-xs text-gray-400">
-                    Offline Round - Registration Successful!
-                  </div>
                 </div>
                 {getRoundStatus(rounds.round1, 1) === 'passed' || getRoundStatus(rounds.round1, 1) === 'failed' ? (
-                  <button
-                    onClick={() => handleViewResults(1)}
-                    className='bg-gradient-to-r from-purple-500 via-purple-600 to-purple-700 hover:from-purple-600 hover:via-purple-700 hover:to-purple-800 text-white font-semibold py-4 px-8 rounded-2xl transition-all duration-500 hover:scale-105 shadow-xl glow-purple'
-                  >
-                    View Result
-                  </button>
+                  rounds.round1.announced ? (
+                    <div className="text-center">
+                      <div className="text-white text-lg font-bold mb-1">
+                        {getRoundStatus(rounds.round1, 1) === 'passed' ? '✅ QUALIFIED!' : '❌ NOT QUALIFIED'}
+                      </div>
+                      <div className="text-gray-200 text-sm">
+                        Results announced
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="text-center">
+                      <div className="text-orange-300 text-lg font-bold mb-1">
+                        Round 1 Completed
+                      </div>
+                      <div className="text-gray-300 text-sm">
+                        Waiting for results...
+                      </div>
+                    </div>
+                  )
                 ) : getRoundStatus(rounds.round1, 1) === 'available' ? (
                   <button
                     onClick={() => handleStartRound(1)}
@@ -379,9 +398,9 @@ const TeamPage = () => {
 
               {/* Round 2 */}
               <div className={classNames('p-8 rounded-3xl text-center glass-dark shadow-2xl w-full flex flex-col justify-center items-center gap-6 transition-all duration-500 hover:scale-105 hover:glow-blue', {
-                "bg-green-600/20 border-green-400/30": getRoundStatus(rounds.round2, 2) === 'passed',
-                "bg-red-600/20 border-red-400/30": getRoundStatus(rounds.round2, 2) === 'failed',
-                "bg-orange-600/20 border-orange-400/30": getRoundStatus(rounds.round2, 2) === 'available',
+                "bg-green-600/40 border-green-400/50": getRoundStatus(rounds.round2, 2) === 'passed' && rounds.round2.announced,
+                "bg-red-600/40 border-red-400/50": getRoundStatus(rounds.round2, 2) === 'failed' && rounds.round2.announced,
+                "bg-orange-600/20 border-orange-400/30": getRoundStatus(rounds.round2, 2) === 'available' || (getRoundStatus(rounds.round2, 2) === 'passed' && !rounds.round2.announced),
                 "bg-gray-600/20 border-gray-400/30": getRoundStatus(rounds.round2, 2) === 'locked'
               })}>
                 <div className='flex flex-col items-center gap-4'>
@@ -392,9 +411,6 @@ const TeamPage = () => {
                   <p className='text-sm font-medium text-gray-300 text-center leading-relaxed'>
                     {getRoundMessage(rounds.round2, 2)}
                   </p>
-                  <div className="text-xs text-gray-400">
-                    {getRoundStatus(rounds.round2, 2) === 'locked' ? 'Locked - Complete Round 1' : 'Online Round - Requires Access Code'}
-                  </div>
                 </div>
                 {getRoundStatus(rounds.round2, 2) === 'locked' ? (
                   <button
@@ -404,12 +420,25 @@ const TeamPage = () => {
                     Locked
                   </button>
                 ) : getRoundStatus(rounds.round2, 2) === 'passed' || getRoundStatus(rounds.round2, 2) === 'failed' ? (
-                  <button
-                    onClick={() => handleViewResults(2)}
-                    className='bg-gradient-to-r from-purple-500 via-purple-600 to-purple-700 hover:from-purple-600 hover:via-purple-700 hover:to-purple-800 text-white font-semibold py-4 px-8 rounded-2xl transition-all duration-500 hover:scale-105 shadow-xl glow-purple'
-                  >
-                    View Result
-                  </button>
+                  rounds.round2.announced ? (
+                    <div className="text-center">
+                      <div className="text-white text-lg font-bold mb-1">
+                        {getRoundStatus(rounds.round2, 2) === 'passed' ? '✅ QUALIFIED!' : '❌ NOT QUALIFIED'}
+                      </div>
+                      <div className="text-gray-200 text-sm">
+                        Results announced
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="text-center">
+                      <div className="text-orange-300 text-lg font-bold mb-1">
+                        Round 2 Completed
+                      </div>
+                      <div className="text-gray-300 text-sm">
+                        Waiting for results...
+                      </div>
+                    </div>
+                  )
                 ) : (
                   <button
                     onClick={() => handleStartRound(2)}
@@ -422,9 +451,9 @@ const TeamPage = () => {
 
               {/* Round 3 */}
               <div className={classNames('p-8 rounded-3xl text-center glass-dark shadow-2xl w-full flex flex-col justify-center items-center gap-6 transition-all duration-500 hover:scale-105 hover:glow-purple', {
-                "bg-green-600/20 border-green-400/30": getRoundStatus(rounds.round3, 3) === 'passed',
-                "bg-red-600/20 border-red-400/30": getRoundStatus(rounds.round3, 3) === 'failed',
-                "bg-orange-600/20 border-orange-400/30": getRoundStatus(rounds.round3, 3) === 'available',
+                "bg-green-600/40 border-green-400/50": getRoundStatus(rounds.round3, 3) === 'passed' && rounds.round3.announced,
+                "bg-red-600/40 border-red-400/50": getRoundStatus(rounds.round3, 3) === 'failed' && rounds.round3.announced,
+                "bg-orange-600/20 border-orange-400/30": getRoundStatus(rounds.round3, 3) === 'available' || (getRoundStatus(rounds.round3, 3) === 'passed' && !rounds.round3.announced),
                 "bg-gray-600/20 border-gray-400/30": getRoundStatus(rounds.round3, 3) === 'locked'
               })}>
                 <div className='flex flex-col items-center gap-4'>
@@ -435,9 +464,6 @@ const TeamPage = () => {
                   <p className='text-sm font-medium text-gray-300 text-center leading-relaxed'>
                     {getRoundMessage(rounds.round3, 3)}
                   </p>
-                  <div className="text-xs text-gray-400">
-                    {getRoundStatus(rounds.round3, 3) === 'locked' ? 'Locked - Complete Round 2' : 'Final Round - Requires Access Code'}
-                  </div>
                 </div>
                 {getRoundStatus(rounds.round3, 3) === 'locked' ? (
                   <button
@@ -447,12 +473,25 @@ const TeamPage = () => {
                     Locked
                   </button>
                 ) : getRoundStatus(rounds.round3, 3) === 'passed' || getRoundStatus(rounds.round3, 3) === 'failed' ? (
-                  <button
-                    onClick={() => handleViewResults(3)}
-                    className='bg-gradient-to-r from-purple-500 via-purple-600 to-purple-700 hover:from-purple-600 hover:via-purple-700 hover:to-purple-800 text-white font-semibold py-4 px-8 rounded-2xl transition-all duration-500 hover:scale-105 shadow-xl glow-purple'
-                  >
-                    View Result
-                  </button>
+                  rounds.round3.announced ? (
+                    <div className="text-center">
+                      <div className="text-white text-lg font-bold mb-1">
+                        {getRoundStatus(rounds.round3, 3) === 'passed' ? '✅ SELECTED!' : '❌ NOT SELECTED'}
+                      </div>
+                      <div className="text-gray-200 text-sm">
+                        Results announced
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="text-center">
+                      <div className="text-orange-300 text-lg font-bold mb-1">
+                        Round 3 Completed
+                      </div>
+                      <div className="text-gray-300 text-sm">
+                        Waiting for results...
+                      </div>
+                    </div>
+                  )
                 ) : (
                   <button
                     onClick={() => handleStartRound(3)}
@@ -476,66 +515,6 @@ const TeamPage = () => {
         />
       )}
 
-      {/* Round 1 Result Modal */}
-      {showResults.round1 && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-          <div className="glass-dark rounded-3xl p-8 max-w-md w-full shadow-2xl">
-            <div className="text-center">
-              <div className="w-16 h-16 bg-green-500/20 rounded-full flex items-center justify-center mx-auto mb-4">
-                <svg className="w-8 h-8 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                </svg>
-              </div>
-              <h3 className="text-2xl font-bold text-white mb-2">Round 1 Result</h3>
-              <p className="text-green-300 text-lg mb-4">Congratulations! You Qualified!</p>
-              <p className="text-gray-300 text-sm mb-6">
-                You have successfully qualified for Round 2. The next round will be available soon!
-              </p>
-              <button
-                onClick={() => setShowResults(prev => ({ ...prev, round1: false }))}
-                className="bg-green-600 hover:bg-green-700 text-white font-semibold py-3 px-6 rounded-xl transition-all duration-300"
-              >
-                Close
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Round 2 Result Modal */}
-      {showResults.round2 && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-          <div className="glass-dark rounded-3xl p-8 max-w-md w-full shadow-2xl">
-            <div className="text-center">
-              <div className="w-16 h-16 bg-blue-500/20 rounded-full flex items-center justify-center mx-auto mb-4">
-                <svg className="w-8 h-8 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                </svg>
-              </div>
-              <h3 className="text-2xl font-bold text-white mb-2">Round 2 Result</h3>
-              <p className="text-blue-300 text-lg mb-4">Round 2 Completed!</p>
-              <div className="bg-white/10 rounded-lg p-4 mb-6">
-                <p className="text-white text-sm mb-2">Status:</p>
-                <p className="text-lg font-semibold text-blue-400">
-                  {rounds.round2.result ? `Completed - ${rounds.round2.score || 'N/A'}%` : 'Pending Review'}
-                </p>
-              </div>
-              <p className="text-gray-300 text-sm mb-6">
-                {rounds.round2.result
-                  ? `Round 2 completed successfully! Your score: ${rounds.round2.score || 'N/A'}%`
-                  : 'Your Round 2 submission is being reviewed. Results will be announced soon!'
-                }
-              </p>
-              <button
-                onClick={() => setShowResults(prev => ({ ...prev, round2: false }))}
-                className="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-6 rounded-xl transition-all duration-300"
-              >
-                Close
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
 
       <Footer />
     </div>
