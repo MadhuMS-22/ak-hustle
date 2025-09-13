@@ -44,8 +44,7 @@ const roundCodesSchema = new mongoose.Schema({
     timestamps: true
 });
 
-// Index for faster queries
-roundCodesSchema.index({ round: 1 });
+// Index for faster queries (round already has unique index)
 roundCodesSchema.index({ isActive: 1 });
 
 // Pre-save middleware to update updatedAt

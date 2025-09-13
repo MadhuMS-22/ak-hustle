@@ -7,29 +7,25 @@ const RETRY_DELAY = 5000; // 5 seconds
 const connectDB = async (retryCount = 0) => {
     try {
         console.log("Mongo URI from ENV:", process.env.MONGODB_URI);
-        
+
         if (!process.env.MONGODB_URI) {
             throw new Error('MONGODB_URI is not defined in environment variables');
         }
-        
+
         // MongoDB connection options to prevent disconnections
         const options = {
-            useNewUrlParser: true,
-            useUnifiedTopology: true,
             maxPoolSize: 10, // Maintain up to 10 socket connections
             serverSelectionTimeoutMS: 5000, // Keep trying to send operations for 5 seconds
             socketTimeoutMS: 45000, // Close sockets after 45 seconds of inactivity
-            bufferMaxEntries: 0, // Disable mongoose buffering
-            bufferCommands: false, // Disable mongoose buffering
             connectTimeoutMS: 10000, // Give up initial connection after 10 seconds
             heartbeatFrequencyMS: 10000, // Send a ping every 10 seconds
             maxIdleTimeMS: 30000, // Close connections after 30 seconds of inactivity
         };
-        
+
         const conn = await mongoose.connect(process.env.MONGODB_URI, options);
 
         console.log(`MongoDB Connected: ${conn.connection.host}`);
-        
+
         // Handle connection events
         mongoose.connection.on('connected', () => {
             console.log('Mongoose connected to MongoDB');
@@ -63,10 +59,10 @@ const connectDB = async (retryCount = 0) => {
     } catch (error) {
         console.log("Database connection error occurred");
         console.error('Database connection error:', error.message);
-        
+
         // Retry connection if we haven't exceeded max retries
         if (retryCount < MAX_RETRIES) {
-            console.log(`Retrying connection in ${RETRY_DELAY/1000} seconds... (Attempt ${retryCount + 1}/${MAX_RETRIES})`);
+            console.log(`Retrying connection in ${RETRY_DELAY / 1000} seconds... (Attempt ${retryCount + 1}/${MAX_RETRIES})`);
             setTimeout(() => {
                 connectDB(retryCount + 1);
             }, RETRY_DELAY);

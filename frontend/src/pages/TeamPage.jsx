@@ -54,57 +54,51 @@ const TeamPage = () => {
         setTeamData(team)
 
         // Update rounds based on team's competition status
-        console.log('Team competition status:', team.competitionStatus)
-        console.log('Team scores:', team.scores)
 
         // Determine round statuses based on competition status and results announcement
         const updatedRounds = {
           round1: {
             status: team.competitionStatus === 'Registered' ? 'pending' :
               team.competitionStatus === 'Round1' ? 'available' :
-                ['Round2', 'Round3', 'Selected'].includes(team.competitionStatus) ? 'completed' : 'locked',
-            result: team.competitionStatus === 'Registered' ? null :
-              team.competitionStatus === 'Round1' ? null :
-                ['Round2', 'Round3', 'Selected'].includes(team.competitionStatus) ? true : null,
+                ['Round2', 'Round3', 'Selected', 'Eliminated'].includes(team.competitionStatus) ? 'completed' : 'locked',
+            result: (team.resultsAnnounced && team.competitionStatus !== 'Registered' && team.competitionStatus !== 'Round1') ?
+              (['Round2', 'Round3', 'Selected'].includes(team.competitionStatus) ? true : false) : null,
             score: team.scores?.round1 || null,
             announced: team.resultsAnnounced || false,
-            qualified: team.competitionStatus === 'Round1' ? false :
-              ['Round2', 'Round3', 'Selected'].includes(team.competitionStatus) ? true : null
+            qualified: (team.resultsAnnounced && team.competitionStatus !== 'Registered' && team.competitionStatus !== 'Round1') ?
+              (['Round2', 'Round3', 'Selected'].includes(team.competitionStatus) ? true : false) : null
           },
           round2: {
             status: team.competitionStatus === 'Round2' ? 'available' :
-              ['Round3', 'Selected'].includes(team.competitionStatus) ? 'completed' : 'locked',
-            result: ['Round3', 'Selected'].includes(team.competitionStatus) ? true : null,
+              ['Round3', 'Selected'].includes(team.competitionStatus) ? 'completed' :
+                team.competitionStatus === 'Eliminated' ? 'completed' : 'locked',
+            result: (team.resultsAnnounced && team.competitionStatus !== 'Round2') ?
+              (['Round3', 'Selected'].includes(team.competitionStatus) ? true : false) : null,
             score: team.scores?.round2 || null,
             announced: team.resultsAnnounced || false,
-            qualified: team.competitionStatus === 'Round2' ? false :
-              ['Round3', 'Selected'].includes(team.competitionStatus) ? true : null
+            qualified: (team.resultsAnnounced && team.competitionStatus !== 'Round2') ?
+              (['Round3', 'Selected'].includes(team.competitionStatus) ? true : false) : null
           },
           round3: {
             status: team.competitionStatus === 'Round3' ? 'available' :
-              team.competitionStatus === 'Selected' ? 'completed' : 'locked',
-            result: team.competitionStatus === 'Selected' ? true : null,
+              team.competitionStatus === 'Selected' ? 'completed' :
+                team.competitionStatus === 'Eliminated' ? 'completed' : 'locked',
+            result: (team.resultsAnnounced && team.competitionStatus !== 'Round3') ?
+              (team.competitionStatus === 'Selected' ? true : false) : null,
             score: team.scores?.round3 || null,
             announced: team.resultsAnnounced || false,
-            qualified: team.competitionStatus === 'Round3' ? false :
-              team.competitionStatus === 'Selected' ? true : null
+            qualified: (team.resultsAnnounced && team.competitionStatus !== 'Round3') ?
+              (team.competitionStatus === 'Selected' ? true : false) : null
           }
         }
 
-        console.log('Updated rounds:', updatedRounds)
-        console.log('Round 1 status:', updatedRounds.round1.status, 'result:', updatedRounds.round1.result)
-        console.log('Round 2 status:', updatedRounds.round2.status, 'result:', updatedRounds.round2.result)
-        console.log('Round 3 status:', updatedRounds.round3.status, 'result:', updatedRounds.round3.result)
         setRounds(updatedRounds)
       }
 
       // Fetch round codes for verification
       const codesResponse = await apiService.get('/competition/round-codes')
       if (codesResponse.success) {
-        console.log('Round codes fetched:', codesResponse.data.roundCodes)
         setRoundCodes(codesResponse.data.roundCodes)
-      } else {
-        console.log('Failed to fetch round codes:', codesResponse)
       }
 
     } catch (error) {
@@ -118,10 +112,10 @@ const TeamPage = () => {
   // Set up real-time updates
   useEffect(() => {
     if (teamData?._id) {
-      // Poll for updates every 30 seconds
+      // Poll for updates every 10 seconds to catch admin changes
       const interval = setInterval(() => {
         fetchTeamData(teamData._id)
-      }, 30000)
+      }, 10000)
 
       return () => clearInterval(interval)
     }
@@ -172,39 +166,22 @@ const TeamPage = () => {
   }
 
   const getRoundStatus = (round, roundNumber) => {
-    console.log(`Getting status for Round ${roundNumber}:`, {
-      round,
-      round1Status: rounds.round1?.status,
-      round2Status: rounds.round2?.status,
-      round3Status: rounds.round3?.status
-    })
-
-    if (roundNumber === 1) {
-      if (round.status === 'completed') {
-        return round.result ? 'passed' : 'failed'
-      } else if (round.status === 'available') {
-        return 'available'
-      } else {
-        return 'pending'
-      }
-    } else if (roundNumber === 2) {
-      if (round.status === 'completed') {
-        return round.result ? 'passed' : 'failed'
-      } else if (round.status === 'available') {
-        return 'available'
-      } else {
-        return 'locked'
-      }
-    } else if (roundNumber === 3) {
-      if (round.status === 'completed') {
-        return round.result ? 'passed' : 'failed'
-      } else if (round.status === 'available') {
-        return 'available'
-      } else {
-        return 'locked'
-      }
+    // If round is completed, check if it's passed or failed
+    if (round.status === 'completed') {
+      return round.result ? 'passed' : 'failed'
     }
-    return 'locked'
+    // If round is available, return available
+    else if (round.status === 'available') {
+      return 'available'
+    }
+    // If round is pending (only for Round 1), return pending
+    else if (round.status === 'pending') {
+      return 'pending'
+    }
+    // Otherwise, it's locked
+    else {
+      return 'locked'
+    }
   }
 
   const getRoundMessage = (round, roundNumber) => {

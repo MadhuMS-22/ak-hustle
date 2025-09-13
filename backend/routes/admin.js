@@ -92,45 +92,40 @@ const updateTeamStatus = async (req, res) => {
 const announceResults = async (req, res) => {
     try {
         const { round } = req.body;
-        const validRounds = [1, 2, 3];
 
-        if (!validRounds.includes(round)) {
+        if (!round || !['1', '2', '3'].includes(round.toString())) {
             return res.status(400).json({
                 success: false,
-                message: 'Invalid round number'
+                message: 'Invalid round number. Must be 1, 2, or 3'
             });
         }
 
-        // Update all teams' resultsAnnounced status based on their current competition status
-        let updateQuery = {};
-        let message = '';
-
-        switch (round) {
-            case 1:
-                // Announce Round 1 results - teams in Round1 status can see their advancement
-                updateQuery = { competitionStatus: 'Round1' };
-                message = 'Round 1 results announced successfully! Teams can now see their advancement status.';
+        // Determine which teams to update based on round
+        let statusFilter;
+        switch (round.toString()) {
+            case '1':
+                statusFilter = { $in: ['Round2', 'Round3', 'Selected', 'Eliminated'] };
                 break;
-            case 2:
-                // Announce Round 2 results - teams in Round2 status can see their advancement
-                updateQuery = { competitionStatus: 'Round2' };
-                message = 'Round 2 results announced successfully! Teams can now see their advancement status.';
+            case '2':
+                statusFilter = { $in: ['Round3', 'Selected', 'Eliminated'] };
                 break;
-            case 3:
-                // Announce Round 3 results - teams in Round3 status can see their advancement
-                updateQuery = { competitionStatus: 'Round3' };
-                message = 'Round 3 results announced successfully! Teams can now see their advancement status.';
+            case '3':
+                statusFilter = { $in: ['Selected', 'Eliminated'] };
                 break;
         }
 
-        // Update resultsAnnounced for teams in the specified round
-        const result = await Team.updateMany(updateQuery, {
-            resultsAnnounced: true
-        });
+        // Update resultsAnnounced flag for teams in the specified round
+        const result = await Team.updateMany(
+            {
+                isActive: true,
+                competitionStatus: statusFilter
+            },
+            { resultsAnnounced: true }
+        );
 
         res.status(200).json({
             success: true,
-            message: message,
+            message: `Round ${round} results announced successfully`,
             data: {
                 updatedCount: result.modifiedCount,
                 round: round
@@ -716,9 +711,6 @@ const updateTeamStatusNew = async (req, res) => {
     }
 };
 
-// @desc    Announce results (Admin only)
-// @route   POST /api/admin/announceResults
-// @access  Private (Admin)
 
 // @desc    Get teams for round selection (Admin only)
 // @route   GET /api/admin/round/:roundNumber/teams

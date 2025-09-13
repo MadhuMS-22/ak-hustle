@@ -81,7 +81,7 @@ app.use('/api/admin', adminRoutes);
 app.get('/api/health', (req, res) => {
     const isConnected = checkConnection();
     const status = getConnectionStatus();
-    
+
     res.status(isConnected ? 200 : 503).json({
         success: isConnected,
         message: isConnected ? 'Server is healthy' : 'Database connection issue',

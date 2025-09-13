@@ -21,7 +21,7 @@ export const AuthProvider = ({ children }) => {
             try {
                 const storedTeam = localStorage.getItem('hustle_team');
                 const storedToken = localStorage.getItem('hustle_token');
-                
+
                 // Check both team data and token for authentication
                 if (storedTeam && storedToken) {
                     const parsedTeamData = JSON.parse(storedTeam);
@@ -53,12 +53,12 @@ export const AuthProvider = ({ children }) => {
         try {
             // Store team data in localStorage
             localStorage.setItem('hustle_team', JSON.stringify(teamData));
-            
+
             // Store token if provided
             if (token) {
                 localStorage.setItem('hustle_token', token);
             }
-            
+
             setTeamData(teamData);
             setIsAuthenticated(true);
         } catch (error) {
